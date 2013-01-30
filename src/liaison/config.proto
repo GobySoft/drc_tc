@@ -1,0 +1,38 @@
+import "goby/common/protobuf/liaison_config.proto";
+
+extend goby.common.protobuf.LiaisonConfig
+{
+  optional DRCGUIConfig drc_gui_config = 1100;
+}
+
+message DRCGUIConfig
+{
+  optional int32 latency_ms = 1 [default = 0];
+  optional int32 drop_percentage = 2 [default = 0];
+
+  optional bool do_rate_control = 10 [default = false];
+  optional int32 max_rate = 11 [default = 0];
+
+  enum RateUnits
+  {
+    BYTES_PER_SEC = 0;
+    KBYTES_PER_SEC = 1;
+    MBYTES_PER_SEC = 2;
+    KBITS_PER_SEC = 3;
+    MBITS_PER_SEC = 4;
+  }
+  
+  optional RateUnits rate_unit = 12 [default = KBITS_PER_SEC];
+
+  optional uint32 tunnel_num = 100 [default = 51];
+
+  enum TunnelType
+  {
+    LOOPBACK = 1;
+    //TCP_SERVER = 2;
+    //TCP_CLIENT = 3;
+  }
+  optional TunnelType tunnel_type = 101 [default = LOOPBACK];
+
+}
+
