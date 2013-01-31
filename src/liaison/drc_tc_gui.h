@@ -49,7 +49,8 @@ namespace drc_tc
         Wt::WVBoxLayout* main_layout_;
         Wt::WContainerWidget* container_;
         Wt::WGroupBox* current_group_;
-        Wt::WText* current_text_;
+        Wt::WText* pb_cfg_text_;
+        Wt::WText* tc_show_text_;
     };
 }
 

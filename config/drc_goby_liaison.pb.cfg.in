@@ -12,17 +12,6 @@ base {  # params shared with all goby applications (optional)
     tty_verbosity: DEBUG1  # Terminal verbosity (QUIET, WARN, 
                           # VERBOSE, GUI, DEBUG1, DEBUG2, DEBUG3) 
                           # (optional) (default=QUIET)
-        file_log {  # Open one or more files for (debug) logging, the 
-                # symbol '%1%' will be replaced by the current UTC 
-                # date and time. (repeated)
-      file_name: "goby_liaison_%1%.txt"  #  (required)
-      verbosity: DEBUG2  # Verbosity for this file log (QUIET, 
-                          # WARN, VERBOSE, DEBUG1, DEBUG2, DEBUG3, 
-                          # VERBOSITY_QUIET, VERBOSITY_WARN, 
-                          # VERBOSITY_VERBOSE, VERBOSITY_DEBUG, 
-                          # VERBOSITY_GUI) (optional) 
-                          # (default=VERBOSE)
-    }
   }
 }
 http_address: "127.0.0.1"  # address to bind on; same as Wt 

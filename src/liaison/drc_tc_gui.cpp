@@ -7,6 +7,8 @@
 #include <Wt/WComboBox>
 #include <Wt/WCheckBox>
 #include <Wt/WPushButton>
+#include <Wt/WCssDecorationStyle>
+#include <Wt/WColor>
 
 #include "goby/common/logger.h"
 
@@ -36,21 +38,24 @@ drc_tc::DRCLiaisonGUI::DRCLiaisonGUI(const DRCGUIConfig& cfg,
       main_layout_(new Wt::WVBoxLayout(this)),
       container_(new Wt::WContainerWidget(this)),
       current_group_(new Wt::WGroupBox("Current settings: ", container_)),
-      current_text_(new WText("<pre>" + cfg.DebugString() + "</pre>", current_group_))
-{   
+      pb_cfg_text_(new WText("<pre>" + cfg.DebugString() + "</pre>", current_group_)),
+      tc_show_text_(new WText(current_group_))
+{
+    Wt::WCssDecorationStyle gray_text;
+    gray_text.setForegroundColor(Wt::WColor(Wt::gray));
+    tc_show_text_->setDecorationStyle(gray_text);
+    
     do_remove();
     do_apply();
     
-    main_layout_->addWidget(container_);
-    
-    Wt::WPushButton *apply = new Wt::WPushButton("Apply changes", current_group_);
-    apply->clicked().connect(this, &drc_tc::DRCLiaisonGUI::do_apply);
- 
-    
+    main_layout_->addWidget(container_);    
+
+    Wt::WGroupBox* update_box = new Wt::WGroupBox("Update settings: ", container_);
+
     const google::protobuf::Descriptor* desc = cfg.GetDescriptor();
-    add_slider_box(desc->FindFieldByNumber(1), 0, 5000, container_); // latency_ms
-    add_slider_box(desc->FindFieldByNumber(2), 0, 100, container_); // drop_percentage
-    Wt::WContainerWidget* rate_group = add_slider_box(desc->FindFieldByNumber(11), 0, 1000, container_); // max_rate
+    add_slider_box(desc->FindFieldByNumber(1), 0, 5000, update_box); // latency_ms
+    add_slider_box(desc->FindFieldByNumber(2), 0, 100, update_box); // drop_percentage
+    Wt::WContainerWidget* rate_group = add_slider_box(desc->FindFieldByNumber(11), 0, 1000, update_box); // max_rate
     
     Wt::WComboBox* rate_unit_box = new Wt::WComboBox(rate_group);
 
@@ -70,7 +75,10 @@ drc_tc::DRCLiaisonGUI::DRCLiaisonGUI(const DRCGUIConfig& cfg,
     rate_control_enabled->unChecked().connect(boost::bind(&DRCLiaisonGUI::do_set_rate_enabled, this, false));
     
     rate_group->addWidget(new WBreak());
-    
+
+    new Wt::WBreak(update_box);
+    Wt::WPushButton *apply = new Wt::WPushButton("Apply changes", update_box);
+    apply->clicked().connect(this, &drc_tc::DRCLiaisonGUI::do_apply);
     
     set_name("DRCTrafficControl");
 }
@@ -177,8 +185,31 @@ void drc_tc::DRCLiaisonGUI::do_apply()
         tc_system(netem_command);
     }
     
+    {
+        // grab output of tc show
+        FILE *fp;
+        int status;
+        char output[100];
+        
+        /* Open the command for reading. */
+        std::stringstream netem_command, result;
+        netem_command << "/sbin/tc qdisc show dev tun" << cfg_.tunnel_num();
+        fp = popen(netem_command.str().c_str(), "r");
+        if (fp)
+        {
+            /* Read the output a line at a time - output it. */
+            while (fgets(output, sizeof(output)-1, fp) != NULL) {
+                result << output;
+            }
+            /* close */
+            pclose(fp);
+        }        
+
+        pb_cfg_text_->setText("<pre>" + cfg_.DebugString() + "</pre>");
+        tc_show_text_->setText("<pre> # " + netem_command.str() + "\n"
+                               + result.str() + "</pre>");
+    }
     
     
-    current_text_->setText("<pre>" + cfg_.DebugString() + "</pre>");
 }
 

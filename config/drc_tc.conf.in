@@ -1,0 +1,20 @@
+# drc_tc - MIT DARPA Robotics Challenge Traffic Controlled Tunnel
+#
+# Simulates restricted access tunnel
+
+description	"MIT DARPA Robotics Challenge Traffic Controlled Tunnel"
+
+env DRC_TUNNEL_NUMBER=51
+
+start on filesystem or runlevel [2345]
+stop on runlevel [!2345]
+
+pre-start script
+    test -x /usr/bin/socat || { stop; exit 0; }
+    test -x @CMAKE_INSTALL_PREFIX@/bin/ipv4_address_swap || { stop; exit 0; }
+end script
+
+script
+   /usr/bin/socat -d -d -d TUN:172.19.5.1/24,up,tun-name=tun$DRC_TUNNEL_NUMBER,iff-no-pi exec:"@CMAKE_INSTALL_PREFIX@/bin/ipv4_address_swap",nofork
+end script
+
