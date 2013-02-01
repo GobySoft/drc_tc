@@ -24,9 +24,7 @@ namespace drc_tc
                       Wt::WContainerWidget* parent = 0);
 
         ~DRCLiaisonGUI()
-        {
-            do_remove();
-        }
+        { }
 
       private:
         Wt::WContainerWidget* add_slider_box(const google::protobuf::FieldDescriptor* field,
