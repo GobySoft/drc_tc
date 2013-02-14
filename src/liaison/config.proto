@@ -24,13 +24,13 @@ message DRCGUIConfig
   
   optional RateUnits rate_unit = 12 [default = KBITS_PER_SEC];
 
-  optional uint32 tunnel_num = 100 [default = 51];
+  optional int32 tunnel_num = 100 [default = 51];
 
   enum TunnelType
   {
-    LOOPBACK = 1;
-    TCP_SERVER = 2;
-    TCP_CLIENT = 3;
+    LOOPBACK = 0;
+    TCP_SERVER = 1;
+    TCP_CLIENT = 2;
   }
   optional TunnelType tunnel_type = 101 [default = LOOPBACK];
 

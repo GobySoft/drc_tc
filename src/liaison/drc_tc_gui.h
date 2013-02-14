@@ -27,26 +27,41 @@ namespace drc_tc
         { }
 
       private:
+        void create_layout();
+        
         Wt::WContainerWidget* add_slider_box(const google::protobuf::FieldDescriptor* field,
                                              int min, int max,
-                                             Wt::WContainerWidget* container);
+                                             Wt::WContainerWidget* container,
+                                             bool has_slider = true);
         void do_set_int32_value(int value, const google::protobuf::FieldDescriptor* field);
         void do_set_rate_enabled(bool enabled)
         { cfg_.set_do_rate_control(enabled); }
         
         void do_set_rate_units(int unit)
         { cfg_.set_rate_unit(static_cast<DRCGUIConfig::RateUnits>(unit)); }
+
+        void do_set_tun_type(int unit)
+        { cfg_.set_tunnel_type(static_cast<DRCGUIConfig::TunnelType>(unit)); }
+
+        void do_set_tcp_address(Wt::WLineEdit* edit)
+        {
+            cfg_.set_tcp_address(edit->text().narrow());
+        }
+        
         
         void do_remove();
         void do_apply();
+        void do_change_tunnel();
 
         void tc_system(const std::stringstream& netem_command);
         
       private:
         DRCGUIConfig cfg_;
+        DRCGUIConfig last_cfg_;
         Wt::WVBoxLayout* main_layout_;
         Wt::WContainerWidget* container_;
-        Wt::WGroupBox* current_group_;
+        Wt::WPanel* current_panel_;
+        Wt::WContainerWidget* current_group_;
         Wt::WText* pb_cfg_text_;
         Wt::WText* tc_show_text_;
     };

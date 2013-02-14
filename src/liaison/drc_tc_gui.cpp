@@ -9,6 +9,8 @@
 #include <Wt/WPushButton>
 #include <Wt/WCssDecorationStyle>
 #include <Wt/WColor>
+#include <Wt/WLineEdit>
+#include <Wt/WPanel>
 
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
@@ -39,7 +41,8 @@ drc_tc::DRCLiaisonGUI::DRCLiaisonGUI(const DRCGUIConfig& cfg,
       cfg_(cfg),
       main_layout_(new Wt::WVBoxLayout(this)),
       container_(new Wt::WContainerWidget(this)),
-      current_group_(new Wt::WGroupBox("Current settings: ", container_)),
+      current_panel_(new Wt::WPanel(container_)),
+      current_group_(new Wt::WContainerWidget),
       pb_cfg_text_(new WText("<pre>" + cfg.DebugString() + "</pre>", current_group_)),
       tc_show_text_(new WText(current_group_))
 {
@@ -55,7 +58,18 @@ drc_tc::DRCLiaisonGUI::DRCLiaisonGUI(const DRCGUIConfig& cfg,
         glog.is(WARN, lock) && glog << "Could not open file: " << cfg_.this_config_location() << " for reading back configuration changes." << std::endl;
     }
 
-    
+    set_name("DRCTrafficControl");
+    create_layout();
+}
+
+void drc_tc::DRCLiaisonGUI::create_layout()
+{
+    current_panel_->setTitle("Current settings");
+    current_panel_->setCentralWidget(current_group_);
+    current_panel_->setCollapsible(true);
+    current_panel_->setPositionScheme(Wt::Fixed);
+    current_panel_->setOffsets(20, Wt::Right | Wt::Bottom);
+   
 
     Wt::WCssDecorationStyle gray_text;
     gray_text.setForegroundColor(Wt::WColor(Wt::gray));
@@ -68,10 +82,29 @@ drc_tc::DRCLiaisonGUI::DRCLiaisonGUI(const DRCGUIConfig& cfg,
 
     Wt::WGroupBox* update_box = new Wt::WGroupBox("Update settings: ", container_);
 
-    const google::protobuf::Descriptor* desc = cfg.GetDescriptor();
+    Wt::WPushButton *apply = new Wt::WPushButton("Apply changes", update_box);
+    apply->clicked().connect(this, &drc_tc::DRCLiaisonGUI::do_apply);
+    new Wt::WBreak(update_box);
+    new Wt::WBreak(update_box);
+
+
+    
+    const google::protobuf::Descriptor* desc = cfg_.GetDescriptor();
     add_slider_box(desc->FindFieldByNumber(1), 0, 5000, update_box); // latency_ms
     add_slider_box(desc->FindFieldByNumber(2), 0, 100, update_box); // drop_percentage
+
+    new Wt::WText(desc->FindFieldByNumber(10)->name(),
+                  update_box); // do rate control
+    Wt::WCheckBox* rate_control_enabled = new Wt::WCheckBox(update_box);
+    rate_control_enabled->setChecked(cfg_.do_rate_control());
+    rate_control_enabled->checked().connect(boost::bind(&DRCLiaisonGUI::do_set_rate_enabled, this, true));
+    rate_control_enabled->unChecked().connect(boost::bind(&DRCLiaisonGUI::do_set_rate_enabled, this, false));
     Wt::WContainerWidget* rate_group = add_slider_box(desc->FindFieldByNumber(11), 0, 1000, update_box); // max_rate
+
+    if(!cfg_.do_rate_control()) rate_group->setDisabled(true);
+    rate_control_enabled->checked().connect(boost::bind(&Wt::WContainerWidget::setDisabled, rate_group, false));
+    rate_control_enabled->unChecked().connect(boost::bind(&Wt::WContainerWidget::setDisabled, rate_group, true));
+
     
     Wt::WComboBox* rate_unit_box = new Wt::WComboBox(rate_group);
 
@@ -80,34 +113,42 @@ drc_tc::DRCLiaisonGUI::DRCLiaisonGUI(const DRCGUIConfig& cfg,
     {
         rate_unit_box->insertItem(i, DRCGUIConfig::RateUnits_Name(i));
     }
-    rate_unit_box->setCurrentIndex(cfg.rate_unit());
+    rate_unit_box->setCurrentIndex(cfg_.rate_unit());
     rate_unit_box->activated().connect(this, &DRCLiaisonGUI::do_set_rate_units);
     rate_group->addWidget(new WBreak());
-    
-    new Wt::WText("Rate control enabled: ", rate_group);
-    Wt::WCheckBox* rate_control_enabled = new Wt::WCheckBox(rate_group);
-    rate_control_enabled->setChecked(cfg.do_rate_control());
-    rate_control_enabled->checked().connect(boost::bind(&DRCLiaisonGUI::do_set_rate_enabled, this, true));
-    rate_control_enabled->unChecked().connect(boost::bind(&DRCLiaisonGUI::do_set_rate_enabled, this, false));
-    
     rate_group->addWidget(new WBreak());
-
-    new Wt::WBreak(update_box);
-    Wt::WPushButton *apply = new Wt::WPushButton("Apply changes", update_box);
-    apply->clicked().connect(this, &drc_tc::DRCLiaisonGUI::do_apply);
     
-    set_name("DRCTrafficControl");
+    add_slider_box(desc->FindFieldByNumber(100), 0, 100, update_box, false); // tunnel_num
+
+    Wt::WGroupBox* tun_type_group = new Wt::WGroupBox(desc->FindFieldByNumber(101)->name(),
+                                                      update_box); // tunnel_type
+    
+    Wt::WComboBox* tun_type_box = new Wt::WComboBox(tun_type_group);
+
+    for(DRCGUIConfig::TunnelType i = DRCGUIConfig::TunnelType_MIN, n = DRCGUIConfig::TunnelType_MAX;
+        i <= n; i = static_cast<DRCGUIConfig::TunnelType>(i + 1))
+    {
+        tun_type_box->insertItem(i, DRCGUIConfig::TunnelType_Name(i));
+    }
+    tun_type_box->setCurrentIndex(cfg_.tunnel_type());
+    tun_type_box->activated().connect(this, &DRCLiaisonGUI::do_set_tun_type);
+
+    Wt::WGroupBox* tcp_address_group = new Wt::WGroupBox(desc->FindFieldByNumber(102)->name(),
+                                                         update_box); // tcp_address
+    
+    Wt::WLineEdit* tcp_address_edit = new Wt::WLineEdit(cfg_.tcp_address(), tcp_address_group);
+    tcp_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_tcp_address, this, tcp_address_edit));
+    
+    add_slider_box(desc->FindFieldByNumber(103), 1024, 65535, update_box, false); // tcp_port
 }
 
 
-Wt::WContainerWidget* drc_tc::DRCLiaisonGUI::add_slider_box(const google::protobuf::FieldDescriptor* field,
-                                     int min, int max, Wt::WContainerWidget* container)
+Wt::WContainerWidget* drc_tc::DRCLiaisonGUI::add_slider_box(const google::protobuf::FieldDescriptor* field, int min, int max, Wt::WContainerWidget* container, bool has_slider/* =true*/)
 {
     const std::string& name = field->name();
     
     Wt::WGroupBox* group = new Wt::WGroupBox(name, container);
     int start = cfg_.GetReflection()->GetInt32(cfg_, field);
-
     
     Wt::WSpinBox *box = new Wt::WSpinBox(group);
     box->setNativeControl(true);
@@ -115,21 +156,24 @@ Wt::WContainerWidget* drc_tc::DRCLiaisonGUI::add_slider_box(const google::protob
     box->setMaximum(max);
     box->setValue(start);
     box->setInline(false);
-    
-    Wt::WSlider *slider = new Wt::WSlider(Wt::Horizontal, group);
-    slider->setNativeControl(true);
-    slider->setMinimum(min);
-    slider->setMaximum(max);
-    slider->setValue(start);
-    slider->setTickInterval((max-min) / 10);
-    slider->setTickPosition(Wt::WSlider::TicksBothSides);
-    slider->resize(400, 50);
-    slider->setInline(false);
 
-    slider->valueChanged().connect(box, &Wt::WSpinBox::setValue);
-    box->valueChanged().connect(slider, &Wt::WSlider::setValue);
+    if(has_slider)
+    {
+        Wt::WSlider *slider = new Wt::WSlider(Wt::Horizontal, group);
+        slider->setNativeControl(true);
+        slider->setMinimum(min);
+        slider->setMaximum(max);
+        slider->setValue(start);
+        slider->setTickInterval((max-min) / 10);
+        slider->setTickPosition(Wt::WSlider::TicksBothSides);
+        slider->resize(400, 50);
+        slider->setInline(false);
+        
+        slider->valueChanged().connect(box, &Wt::WSpinBox::setValue);
+        slider->valueChanged().connect(boost::bind(&DRCLiaisonGUI::do_set_int32_value, this, _1, field));
+        box->valueChanged().connect(slider, &Wt::WSlider::setValue);
+    }
     
-    slider->valueChanged().connect(boost::bind(&DRCLiaisonGUI::do_set_int32_value, this, _1, field));
     box->valueChanged().connect(boost::bind(&DRCLiaisonGUI::do_set_int32_value, this, _1, field));
     
     return group;
@@ -166,6 +210,12 @@ void drc_tc::DRCLiaisonGUI::do_apply()
 {
     glog.is(DEBUG1, lock) && glog << "Cfg: " << cfg_.DebugString() <<  std::endl << unlock;
 
+    if(cfg_.SerializeAsString() == last_cfg_.SerializeAsString())
+    {
+        glog.is(DEBUG1, lock) && glog << "No changes to config... ignoring apply" << std::endl << unlock;
+        return;
+    }
+    
     std::ofstream cfg_file(cfg_.this_config_location().c_str());
     if(cfg_file.is_open())
     {        
@@ -177,7 +227,15 @@ void drc_tc::DRCLiaisonGUI::do_apply()
     {
         glog.is(WARN, lock) && glog << "Could not open file: " << cfg_.this_config_location() << " for writing back configuration changes." << std::endl;
     }
-    
+
+    if(cfg_.tunnel_type() != last_cfg_.tunnel_type() ||
+       cfg_.tcp_address() != last_cfg_.tcp_address() ||
+       cfg_.tcp_port() != last_cfg_.tcp_port())
+
+    {
+        do_change_tunnel();
+    }
+        
     {        
         std::stringstream command;
         command << "drc_tc_apply -c " << cfg_.this_config_location() << std::endl;        
@@ -208,6 +266,16 @@ void drc_tc::DRCLiaisonGUI::do_apply()
                                + result.str() + "</pre>");
     }    
 
-    
+    last_cfg_ = cfg_;
+}
+
+
+void drc_tc::DRCLiaisonGUI::do_change_tunnel()
+{
+    {        
+        std::stringstream command;
+        command << "service drc_tc restart" << std::endl;        
+        tc_system(command);
+    }
 }
 
