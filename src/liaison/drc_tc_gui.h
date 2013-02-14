@@ -7,6 +7,8 @@
 
 #include <zmq.hpp>
 
+#include <Wt/WTimer>
+
 extern "C"
 {
     std::vector<goby::common::LiaisonContainer*> goby_liaison_load(
@@ -54,16 +56,23 @@ namespace drc_tc
         void do_change_tunnel();
 
         void tc_system(const std::stringstream& netem_command);
+
+        void check_status();
+        
         
       private:
         DRCGUIConfig cfg_;
         DRCGUIConfig last_cfg_;
         Wt::WVBoxLayout* main_layout_;
         Wt::WContainerWidget* container_;
-        Wt::WPanel* current_panel_;
-        Wt::WContainerWidget* current_group_;
+        Wt::WPanel* status_panel_;
+        Wt::WContainerWidget* status_group_;
+        Wt::WGroupBox* current_group_;
         Wt::WText* pb_cfg_text_;
+        Wt::WGroupBox* tc_group_;
         Wt::WText* tc_show_text_;
+        Wt::WTimer status_timer_;
+;
     };
 }
 

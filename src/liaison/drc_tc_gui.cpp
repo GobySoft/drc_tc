@@ -41,10 +41,12 @@ drc_tc::DRCLiaisonGUI::DRCLiaisonGUI(const DRCGUIConfig& cfg,
       cfg_(cfg),
       main_layout_(new Wt::WVBoxLayout(this)),
       container_(new Wt::WContainerWidget(this)),
-      current_panel_(new Wt::WPanel(container_)),
-      current_group_(new Wt::WContainerWidget),
+      status_panel_(new Wt::WPanel(container_)),
+      status_group_(new Wt::WContainerWidget),
+      current_group_(new Wt::WGroupBox("Current settings", status_group_)),
       pb_cfg_text_(new WText("<pre>" + cfg.DebugString() + "</pre>", current_group_)),
-      tc_show_text_(new WText(current_group_))
+      tc_group_(new Wt::WGroupBox("tc", status_group_)),
+      tc_show_text_(new WText(tc_group_))
 {
     // re-read the configuration upon construction
     std::ifstream cfg_file(cfg_.this_config_location().c_str());
@@ -60,20 +62,21 @@ drc_tc::DRCLiaisonGUI::DRCLiaisonGUI(const DRCGUIConfig& cfg,
 
     set_name("DRCTrafficControl");
     create_layout();
+
+    status_timer_.setInterval(1000);
+    status_timer_.timeout().connect(this, &DRCLiaisonGUI::check_status);
+    status_timer_.start(); 
 }
 
 void drc_tc::DRCLiaisonGUI::create_layout()
 {
-    current_panel_->setTitle("Current settings");
-    current_panel_->setCentralWidget(current_group_);
-    current_panel_->setCollapsible(true);
-    current_panel_->setPositionScheme(Wt::Fixed);
-    current_panel_->setOffsets(20, Wt::Right | Wt::Bottom);
+    status_panel_->setTitle("Shaper status");
+    status_panel_->setCentralWidget(status_group_);
+    status_panel_->setCollapsible(true);
+    status_panel_->setPositionScheme(Wt::Fixed);
+    status_panel_->setOffsets(20, Wt::Right | Wt::Bottom);
    
 
-    Wt::WCssDecorationStyle gray_text;
-    gray_text.setForegroundColor(Wt::WColor(Wt::gray));
-    tc_show_text_->setDecorationStyle(gray_text);
     
     do_remove();
     do_apply();
@@ -209,6 +212,7 @@ void drc_tc::DRCLiaisonGUI::do_remove()
 void drc_tc::DRCLiaisonGUI::do_apply()
 {
     glog.is(DEBUG1, lock) && glog << "Cfg: " << cfg_.DebugString() <<  std::endl << unlock;
+    pb_cfg_text_->setText("<pre>" + cfg_.DebugString() + "</pre>");
 
     if(cfg_.SerializeAsString() == last_cfg_.SerializeAsString())
     {
@@ -241,30 +245,6 @@ void drc_tc::DRCLiaisonGUI::do_apply()
         command << "drc_tc_apply -c " << cfg_.this_config_location() << std::endl;        
         tc_system(command);
     }
-    {
-        // grab output of tc show
-        FILE *fp;
-        int status;
-        char output[100];
-        
-        /* Open the command for reading. */
-        std::stringstream netem_command, result;
-        netem_command << "/sbin/tc qdisc show dev tun" << cfg_.tunnel_num();
-        fp = popen(netem_command.str().c_str(), "r");
-        if (fp)
-        {
-            /* Read the output a line at a time - output it. */
-            while (fgets(output, sizeof(output)-1, fp) != NULL) {
-                result << output;
-            }
-            /* close */
-            pclose(fp);
-        }        
-
-        pb_cfg_text_->setText("<pre>" + cfg_.DebugString() + "</pre>");
-        tc_show_text_->setText("<pre> # " + netem_command.str() + "\n"
-                               + result.str() + "</pre>");
-    }    
 
     last_cfg_ = cfg_;
 }
@@ -279,3 +259,60 @@ void drc_tc::DRCLiaisonGUI::do_change_tunnel()
     }
 }
 
+
+void drc_tc::DRCLiaisonGUI::check_status()
+{
+    // grab output of tc show
+    FILE *fp;
+    int status;
+    char output[100];
+        
+    /* Open the command for reading. */
+    std::stringstream netem_command, result;
+    netem_command << "/sbin/tc qdisc show dev tun" << cfg_.tunnel_num();
+    fp = popen(netem_command.str().c_str(), "r");
+    if (fp)
+    {
+        /* Read the output a line at a time - output it. */
+        while (fgets(output, sizeof(output)-1, fp) != NULL) {
+            result << output;
+        }
+        /* close */
+        int rc = pclose(fp);
+        if(rc)
+        {
+            Wt::WCssDecorationStyle red_text;
+            red_text.setForegroundColor(Wt::WColor(Wt::red));
+            tc_show_text_->setDecorationStyle(red_text);
+            std::stringstream ss;
+            ss << "Error: for more details see /var/log/upstart/drc_tc.log" << std::endl;
+            switch(cfg_.tunnel_type())
+            {
+                case DRCGUIConfig::TCP_SERVER:
+                    ss << "Check that the port is not in use." << std::endl;
+                    break;
+                case DRCGUIConfig::TCP_CLIENT:
+                    ss << "Check that server address is correct \nand that the server is running." << std::endl;
+                    break;
+                case DRCGUIConfig::LOOPBACK:
+                    break;
+            }
+            tc_show_text_->setText("<pre>" + ss.str() + "</pre>");
+            // so that we can retry even without changing settings.
+            last_cfg_.Clear();
+        }
+        else
+        {
+            Wt::WCssDecorationStyle text;
+            tc_show_text_->setDecorationStyle(text);
+            tc_show_text_->setText("<pre> # " + netem_command.str() + "\n"
+                                   + result.str() + "</pre>");
+        }
+    }        
+
+
+//    Wt::WCssDecorationStyle gray_text;
+//    gray_text.setForegroundColor(Wt::WColor(Wt::gray));
+//    tc_show_text_->setDecorationStyle(gray_text);
+
+}    
