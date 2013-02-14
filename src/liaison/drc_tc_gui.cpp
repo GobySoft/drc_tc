@@ -289,10 +289,10 @@ void drc_tc::DRCLiaisonGUI::check_status()
             switch(cfg_.tunnel_type())
             {
                 case DRCGUIConfig::TCP_SERVER:
-                    ss << "Check that the port is not in use." << std::endl;
+                    ss << "Check that the tcp_port is not in use." << std::endl;
                     break;
                 case DRCGUIConfig::TCP_CLIENT:
-                    ss << "Check that server address is correct \nand that the server is running." << std::endl;
+                    ss << "Check that server's tcp_address is correct \nand that the server is running." << std::endl;
                     break;
                 case DRCGUIConfig::LOOPBACK:
                     break;
