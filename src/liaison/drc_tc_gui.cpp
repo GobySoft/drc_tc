@@ -47,6 +47,8 @@ drc_tc::DRCLiaisonGUI::DRCLiaisonGUI(const DRCGUIConfig& cfg,
       pb_cfg_text_(new WText("<pre>" + cfg.DebugString() + "</pre>", current_group_)),
       tc_group_(new Wt::WGroupBox("tc", status_group_)),
       tc_show_text_(new WText(tc_group_)),
+      ip_group_(new Wt::WGroupBox("ip addr show", status_group_)),
+      ip_show_text_(new WText(ip_group_)),
       drc_tc_has_error_(false)
 {
     // re-read the configuration upon construction
@@ -67,9 +69,9 @@ drc_tc::DRCLiaisonGUI::DRCLiaisonGUI(const DRCGUIConfig& cfg,
     do_remove();    
     do_apply();
 
-    status_timer_.setInterval(100);
+    status_timer_.setInterval(1000);
     status_timer_.timeout().connect(this, &DRCLiaisonGUI::check_status);
-    status_timer_.start(); 
+    status_timer_.start();
 }
 
 void drc_tc::DRCLiaisonGUI::create_layout()
@@ -149,6 +151,8 @@ void drc_tc::DRCLiaisonGUI::create_layout()
     tcp_port_group_ = add_slider_box(desc->FindFieldByNumber(103), 1024, 65535, update_box, false); // tcp_port
 
     do_set_tun_type(cfg_.tunnel_type());
+
+
 }
 
 
@@ -192,6 +196,7 @@ Wt::WContainerWidget* drc_tc::DRCLiaisonGUI::add_slider_box(const google::protob
 void drc_tc::DRCLiaisonGUI::do_set_int32_value(int value, const google::protobuf::FieldDescriptor* field)
 {
     cfg_.GetReflection()->SetInt32(&cfg_, field, value);
+    apply_->setDisabled(false);
 }
 
 void drc_tc::DRCLiaisonGUI::tc_system(const std::stringstream& netem_command)
@@ -266,62 +271,78 @@ void drc_tc::DRCLiaisonGUI::do_change_tunnel()
 
 void drc_tc::DRCLiaisonGUI::check_status()
 {
-    // grab output of tc show
-    FILE *fp;
-    int status;
-    char output[100];
-        
-    /* Open the command for reading. */
-    std::stringstream netem_command, result;
-    netem_command << "/sbin/tc qdisc show dev tun" << last_cfg_.tunnel_num();
-    fp = popen(netem_command.str().c_str(), "r");
-    if (fp)
     {
-        /* Read the output a line at a time - output it. */
-        while (fgets(output, sizeof(output)-1, fp) != NULL) {
-            result << output;
-        }
-        /* close */
-        int rc = pclose(fp);
-        if(rc)
+        // grab output of tc show
+        FILE *fp;
+        int status;
+        char output[100];
+        
+        /* Open the command for reading. */
+        std::stringstream netem_command, result;
+        netem_command << "/sbin/tc qdisc show dev tun" << last_cfg_.tunnel_num();
+        fp = popen(netem_command.str().c_str(), "r");
+        if (fp)
         {
-            Wt::WCssDecorationStyle red_text;
-            red_text.setForegroundColor(Wt::WColor(Wt::red));
-            tc_show_text_->setDecorationStyle(red_text);
-            std::stringstream ss;
-            ss << "Error: for more details see /var/log/upstart/drc_tc.log" << std::endl;
-            ss << "Suggestions: check that the tunnel address \nis correct CIDR notation." << std::endl;
-            switch(last_cfg_.tunnel_type())
-            {
-                case DRCGUIConfig::TCP_SERVER:
-                    ss << "Check that the tcp_port is not in use." << std::endl;
-                    break;
-                case DRCGUIConfig::TCP_CLIENT:
-                    ss << "Check that server's tcp_address is correct \nand that the server is running." << std::endl;
-                    break;
-                case DRCGUIConfig::LOOPBACK:
-                    break;
+            /* Read the output a line at a time - output it. */
+            while (fgets(output, sizeof(output)-1, fp) != NULL) {
+                result << output;
             }
-            tc_show_text_->setText("<pre>" + ss.str() + "</pre>");
-            // so that we can retry even without changing settings.
-            drc_tc_has_error_ = true;
-            std::cout << std::boolalpha << drc_tc_has_error_ << std::endl;
-        }
-        else
+            /* close */
+            int rc = pclose(fp);
+            if(rc)
+            {
+                Wt::WCssDecorationStyle red_text;
+                red_text.setForegroundColor(Wt::WColor(Wt::red));
+                tc_show_text_->setDecorationStyle(red_text);
+                std::stringstream ss;
+                ss << "Error: for more details see /var/log/upstart/drc_tc.log" << std::endl;
+                ss << "Suggestions: check that the tunnel address \nis correct CIDR notation." << std::endl;
+                switch(last_cfg_.tunnel_type())
+                {
+                    case DRCGUIConfig::TCP_SERVER:
+                        ss << "Check that the tcp_port is not in use." << std::endl;
+                        break;
+                    case DRCGUIConfig::TCP_CLIENT:
+                        ss << "Check that server's tcp_address is correct \nand that the server is running." << std::endl;
+                        break;
+                    case DRCGUIConfig::LOOPBACK:
+                        break;
+                }
+                tc_show_text_->setText("<pre>" + ss.str() + "</pre>");
+                // so that we can retry even without changing settings.
+                drc_tc_has_error_ = true;
+                apply_->setDisabled(false);
+            }
+            else
+            {
+                Wt::WCssDecorationStyle text;
+                tc_show_text_->setDecorationStyle(text);
+                tc_show_text_->setText("<pre> # " + netem_command.str() + "\n"
+                                       + result.str() + "</pre>");
+                drc_tc_has_error_ = false;
+            }
+        }        
+    }
+    {
+        // grab output of ip addr
+        FILE *fp;
+        int status;
+        char output[100];
+        
+        /* Open the command for reading. */
+        std::stringstream netem_command, result;
+        netem_command << "ip addr show  | grep 'inet ' | sed 's|    inet ||'" << std::endl;
+        fp = popen(netem_command.str().c_str(), "r");
+        if (fp)
         {
-            Wt::WCssDecorationStyle text;
-            tc_show_text_->setDecorationStyle(text);
-            tc_show_text_->setText("<pre> # " + netem_command.str() + "\n"
-                                   + result.str() + "</pre>");
-            drc_tc_has_error_ = false;
-        }
-    }        
-
-    if(cfg_.SerializeAsString() != last_cfg_.SerializeAsString() || drc_tc_has_error_)
-        apply_->setDisabled(false);
-
-//    Wt::WCssDecorationStyle gray_text;
-//    gray_text.setForegroundColor(Wt::WColor(Wt::gray));
-//    tc_show_text_->setDecorationStyle(gray_text);
+            /* Read the output a line at a time - output it. */
+            while (fgets(output, sizeof(output)-1, fp) != NULL) {
+                result << output;
+            }
+            /* close */
+            pclose(fp);
+            ip_show_text_->setText("<pre>" + result.str() + "</pre>");
+        }        
+    }
 
 }    

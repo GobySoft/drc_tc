@@ -35,12 +35,19 @@ namespace drc_tc
                                              int min, int max,
                                              Wt::WContainerWidget* container,
                                              bool has_slider = true);
+
         void do_set_int32_value(int value, const google::protobuf::FieldDescriptor* field);
         void do_set_rate_enabled(bool enabled)
-        { cfg_.set_do_rate_control(enabled); }
+        {
+            cfg_.set_do_rate_control(enabled);
+            apply_->setDisabled(false);
+        }
         
         void do_set_rate_units(int unit)
-        { cfg_.set_rate_unit(static_cast<DRCGUIConfig::RateUnits>(unit)); }
+        {
+            cfg_.set_rate_unit(static_cast<DRCGUIConfig::RateUnits>(unit));
+            apply_->setDisabled(false);
+        }
 
         void do_set_tun_type(int unit)
         {
@@ -60,17 +67,19 @@ namespace drc_tc
                     tcp_port_group_->setDisabled(true);
                     break;
             }
-            
+            apply_->setDisabled(false);
         }
 
         void do_set_tcp_address(Wt::WLineEdit* edit)
         {
             cfg_.set_tcp_address(edit->text().narrow());
+            apply_->setDisabled(false);
         }        
         
         void do_set_tunnel_address(Wt::WLineEdit* edit)
         {
             cfg_.set_tunnel_address(edit->text().narrow());
+            apply_->setDisabled(false);
         }        
 
 
@@ -94,6 +103,8 @@ namespace drc_tc
         Wt::WText* pb_cfg_text_;
         Wt::WGroupBox* tc_group_;
         Wt::WText* tc_show_text_;
+        Wt::WGroupBox* ip_group_;
+        Wt::WText* ip_show_text_;
         Wt::WTimer status_timer_;
         Wt::WGroupBox* tcp_address_group_;
         Wt::WContainerWidget* tcp_port_group_;
