@@ -43,13 +43,30 @@ namespace drc_tc
         { cfg_.set_rate_unit(static_cast<DRCGUIConfig::RateUnits>(unit)); }
 
         void do_set_tun_type(int unit)
-        { cfg_.set_tunnel_type(static_cast<DRCGUIConfig::TunnelType>(unit)); }
+        {
+            cfg_.set_tunnel_type(static_cast<DRCGUIConfig::TunnelType>(unit));
+            switch(static_cast<DRCGUIConfig::TunnelType>(unit))
+            {
+                case DRCGUIConfig::TCP_SERVER:
+                    tcp_address_group_->setDisabled(true);
+                    tcp_port_group_->setDisabled(false);
+                    break;
+                case DRCGUIConfig::TCP_CLIENT:
+                    tcp_address_group_->setDisabled(false);
+                    tcp_port_group_->setDisabled(false);
+                    break;
+                case DRCGUIConfig::LOOPBACK:
+                    tcp_address_group_->setDisabled(true);
+                    tcp_port_group_->setDisabled(true);
+                    break;
+            }
+            
+        }
 
         void do_set_tcp_address(Wt::WLineEdit* edit)
         {
             cfg_.set_tcp_address(edit->text().narrow());
-        }
-        
+        }        
         
         void do_remove();
         void do_apply();
@@ -72,7 +89,11 @@ namespace drc_tc
         Wt::WGroupBox* tc_group_;
         Wt::WText* tc_show_text_;
         Wt::WTimer status_timer_;
-;
+        Wt::WGroupBox* tcp_address_group_;
+        Wt::WContainerWidget* tcp_port_group_;
+        
+
+
     };
 }
 

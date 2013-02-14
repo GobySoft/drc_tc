@@ -133,16 +133,17 @@ void drc_tc::DRCLiaisonGUI::create_layout()
     {
         tun_type_box->insertItem(i, DRCGUIConfig::TunnelType_Name(i));
     }
-    tun_type_box->setCurrentIndex(cfg_.tunnel_type());
     tun_type_box->activated().connect(this, &DRCLiaisonGUI::do_set_tun_type);
 
-    Wt::WGroupBox* tcp_address_group = new Wt::WGroupBox(desc->FindFieldByNumber(102)->name(),
-                                                         update_box); // tcp_address
+    tcp_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(102)->name(),
+                                           update_box); // tcp_address
     
-    Wt::WLineEdit* tcp_address_edit = new Wt::WLineEdit(cfg_.tcp_address(), tcp_address_group);
+    Wt::WLineEdit* tcp_address_edit = new Wt::WLineEdit(cfg_.tcp_address(), tcp_address_group_);
     tcp_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_tcp_address, this, tcp_address_edit));
     
-    add_slider_box(desc->FindFieldByNumber(103), 1024, 65535, update_box, false); // tcp_port
+    tcp_port_group_ = add_slider_box(desc->FindFieldByNumber(103), 1024, 65535, update_box, false); // tcp_port
+
+    do_set_tun_type(cfg_.tunnel_type());
 }
 
 
