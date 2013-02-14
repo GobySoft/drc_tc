@@ -97,6 +97,7 @@ namespace drc_tc
         Wt::WTimer status_timer_;
         Wt::WGroupBox* tcp_address_group_;
         Wt::WContainerWidget* tcp_port_group_;
+        Wt::WPushButton* apply_;
         
         bool drc_tc_has_error_;
 

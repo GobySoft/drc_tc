@@ -64,7 +64,10 @@ drc_tc::DRCLiaisonGUI::DRCLiaisonGUI(const DRCGUIConfig& cfg,
     set_name("DRCTrafficControl");
     create_layout();
 
-    status_timer_.setInterval(1000);
+    do_remove();    
+    do_apply();
+
+    status_timer_.setInterval(100);
     status_timer_.timeout().connect(this, &DRCLiaisonGUI::check_status);
     status_timer_.start(); 
 }
@@ -79,15 +82,12 @@ void drc_tc::DRCLiaisonGUI::create_layout()
    
 
     
-    do_remove();
-    do_apply();
-    
     main_layout_->addWidget(container_);    
 
     Wt::WGroupBox* update_box = new Wt::WGroupBox("Update settings: ", container_);
 
-    Wt::WPushButton *apply = new Wt::WPushButton("Apply changes", update_box);
-    apply->clicked().connect(this, &drc_tc::DRCLiaisonGUI::do_apply);
+    apply_ = new Wt::WPushButton("Apply changes", update_box);
+    apply_->clicked().connect(this, &drc_tc::DRCLiaisonGUI::do_apply);
     new Wt::WBreak(update_box);
     new Wt::WBreak(update_box);
 
@@ -219,12 +219,6 @@ void drc_tc::DRCLiaisonGUI::do_apply()
 {
     glog.is(DEBUG1, lock) && glog << "Cfg: " << cfg_.DebugString() <<  std::endl << unlock;
     pb_cfg_text_->setText("<pre>" + cfg_.DebugString() + "</pre>");
-
-    if(!drc_tc_has_error_ && cfg_.SerializeAsString() == last_cfg_.SerializeAsString())
-    {
-        glog.is(DEBUG1, lock) && glog << "No changes to config... ignoring apply" << std::endl << unlock;
-        return;
-    }
     
     std::ofstream cfg_file(cfg_.this_config_location().c_str());
     if(cfg_file.is_open())
@@ -256,6 +250,7 @@ void drc_tc::DRCLiaisonGUI::do_apply()
     }
 
     last_cfg_ = cfg_;
+    apply_->setDisabled(true);
 }
 
 
@@ -322,6 +317,8 @@ void drc_tc::DRCLiaisonGUI::check_status()
         }
     }        
 
+    if(cfg_.SerializeAsString() != last_cfg_.SerializeAsString() || drc_tc_has_error_)
+        apply_->setDisabled(false);
 
 //    Wt::WCssDecorationStyle gray_text;
 //    gray_text.setForegroundColor(Wt::WColor(Wt::gray));
