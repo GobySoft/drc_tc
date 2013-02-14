@@ -1,0 +1,12 @@
+latency_ms: 250  #  (optional) (default=0)
+drop_percentage: 0  #  (optional) (default=0)
+do_rate_control: false  #  (optional) (default=false)
+max_rate: 32  #  (optional) (default=0)
+rate_unit: KBITS_PER_SEC  #  (BYTES_PER_SEC, KBYTES_PER_SEC, 
+                          # MBYTES_PER_SEC, KBITS_PER_SEC, 
+                          # MBITS_PER_SEC) (optional)                          
+                          # (default=KBITS_PER_SEC)
+tunnel_num: 51  #  (optional) (default=51)
+tunnel_type: LOOPBACK  #  (LOOPBACK) (optional) 
+                         # (default=LOOPBACK)
+this_config_location: "/etc/drc_tc/drc_tc.pb.cfg"

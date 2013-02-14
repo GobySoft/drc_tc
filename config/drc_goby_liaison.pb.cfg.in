@@ -21,18 +21,3 @@ http_port: 50001  # address to bind on; same as Wt --http-port
                   # (optional) (default=54321)
 update_freq: 10  #  (optional) (default=5)
 start_paused: false  #  (optional) (default=false)
-
-[drc_gui_config] 
-{
-  latency_ms: 100  #  (optional) (default=0)
-  drop_percentage: 10  #  (optional) (default=0)
-  do_rate_control: true  #  (optional) (default=false)
-  max_rate: 100  #  (optional) (default=0)
-  rate_unit: KBITS_PER_SEC  #  (BYTES_PER_SEC, KBYTES_PER_SEC, 
-                            # MBYTES_PER_SEC, KBITS_PER_SEC, 
-                            # MBITS_PER_SEC) (optional) 
-                            # (default=KBITS_PER_SEC)
-  tunnel_num: 51  #  (optional) (default=51)
-  tunnel_type: LOOPBACK  #  (LOOPBACK) (optional) 
-                         # (default=LOOPBACK)
-}

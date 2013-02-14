@@ -10,6 +10,8 @@
 #include <Wt/WCssDecorationStyle>
 #include <Wt/WColor>
 
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+
 #include "goby/common/logger.h"
 
 #include "drc_tc_gui.h"
@@ -41,6 +43,20 @@ drc_tc::DRCLiaisonGUI::DRCLiaisonGUI(const DRCGUIConfig& cfg,
       pb_cfg_text_(new WText("<pre>" + cfg.DebugString() + "</pre>", current_group_)),
       tc_show_text_(new WText(current_group_))
 {
+    // re-read the configuration upon construction
+    std::ifstream cfg_file(cfg_.this_config_location().c_str());
+    if(cfg_file.is_open())
+    {
+        google::protobuf::io::IstreamInputStream cfg_pb_stream(&cfg_file);
+        google::protobuf::TextFormat::Parse(&cfg_pb_stream, &cfg_);
+    }
+    else
+    {
+        glog.is(WARN, lock) && glog << "Could not open file: " << cfg_.this_config_location() << " for reading back configuration changes." << std::endl;
+    }
+
+    
+
     Wt::WCssDecorationStyle gray_text;
     gray_text.setForegroundColor(Wt::WColor(Wt::gray));
     tc_show_text_->setDecorationStyle(gray_text);
@@ -150,41 +166,23 @@ void drc_tc::DRCLiaisonGUI::do_apply()
 {
     glog.is(DEBUG1, lock) && glog << "Cfg: " << cfg_.DebugString() <<  std::endl << unlock;
 
+    std::ofstream cfg_file(cfg_.this_config_location().c_str());
+    if(cfg_file.is_open())
     {        
-        std::stringstream netem_command;
-        netem_command << "/sbin/tc qdisc replace dev tun" << cfg_.tunnel_num()
-                      << " root handle 1:0 netem delay " << cfg_.latency_ms() << "ms"
-                      << " loss " << cfg_.drop_percentage() << "%";
-        
-        tc_system(netem_command);
-    }
-
-    if(cfg_.do_rate_control())
-    {
-        std::stringstream netem_command;
-        netem_command << "/sbin/tc qdisc replace dev tun" << cfg_.tunnel_num() << " parent 1:1 handle 10: tbf rate "
-                      << cfg_.max_rate();
-
-        switch(cfg_.rate_unit())
-        {
-            case DRCGUIConfig::BYTES_PER_SEC: netem_command << "bps"; break;
-            case DRCGUIConfig::KBYTES_PER_SEC: netem_command << "kbps"; break;
-            case DRCGUIConfig::MBYTES_PER_SEC: netem_command << "mbps"; break;
-            case DRCGUIConfig::KBITS_PER_SEC: netem_command << "kbit"; break;
-            case DRCGUIConfig::MBITS_PER_SEC: netem_command << "mbit"; break;
-        }
-
-        netem_command << " buffer 1600 limit 3000";
-        
-        tc_system(netem_command);
+        cfg_file << "# This file is overwritten using the Goby Liaison GUI DRCTrafficControl tab" << std::endl;
+        cfg_file << cfg_.DebugString() << std::endl;
+        cfg_file.close();
     }
     else
     {
-        std::stringstream netem_command;
-        netem_command << "/sbin/tc qdisc replace dev tun" << cfg_.tunnel_num() << " parent 1:1 pfifo";
-        tc_system(netem_command);
+        glog.is(WARN, lock) && glog << "Could not open file: " << cfg_.this_config_location() << " for writing back configuration changes." << std::endl;
     }
     
+    {        
+        std::stringstream command;
+        command << "drc_tc_apply -c " << cfg_.this_config_location() << std::endl;        
+        tc_system(command);
+    }
     {
         // grab output of tc show
         FILE *fp;
@@ -208,8 +206,8 @@ void drc_tc::DRCLiaisonGUI::do_apply()
         pb_cfg_text_->setText("<pre>" + cfg_.DebugString() + "</pre>");
         tc_show_text_->setText("<pre> # " + netem_command.str() + "\n"
                                + result.str() + "</pre>");
-    }
-    
+    }    
+
     
 }
 
