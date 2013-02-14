@@ -68,6 +68,12 @@ namespace drc_tc
             cfg_.set_tcp_address(edit->text().narrow());
         }        
         
+        void do_set_tunnel_address(Wt::WLineEdit* edit)
+        {
+            cfg_.set_tunnel_address(edit->text().narrow());
+        }        
+
+
         void do_remove();
         void do_apply();
         void do_change_tunnel();
@@ -92,7 +98,7 @@ namespace drc_tc
         Wt::WGroupBox* tcp_address_group_;
         Wt::WContainerWidget* tcp_port_group_;
         
-
+        bool drc_tc_has_error_;
 
     };
 }

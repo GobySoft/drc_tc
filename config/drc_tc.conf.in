@@ -20,11 +20,11 @@ pre-start script
    cat >> /tmp/drc_tc_env.sh << EOF
    
 if [[ \$DRC_TC_TUNNEL_TYPE == "LOOPBACK" ]]; then
-   /usr/bin/socat -d -d -d TUN:172.19.5.1/24,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi exec:"/usr/local/bin/ipv4_address_swap",nofork
+   /usr/bin/socat -d -d -d TUN:\$DRC_TC_TUNNEL_ADDRESS,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi exec:"/usr/local/bin/ipv4_address_swap",nofork
 elif [[ \$DRC_TC_TUNNEL_TYPE == "TCP_SERVER" ]]; then
-   /usr/bin/socat -d -d -d TUN:172.19.5.1/24,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi tcp-l:\$DRC_TC_TCP_PORT,reuseaddr,fork
+   /usr/bin/socat -d -d -d TUN:\$DRC_TC_TUNNEL_ADDRESS,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi tcp-l:\$DRC_TC_TCP_PORT,reuseaddr,fork
 elif [[ \$DRC_TC_TUNNEL_TYPE == "TCP_CLIENT" ]]; then
-   /usr/bin/socat -d -d -d TUN:172.19.5.2/24,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi tcp:\$DRC_TC_TCP_ADDRESS:\$DRC_TC_TCP_PORT 
+   /usr/bin/socat -d -d -d TUN:\$DRC_TC_TUNNEL_ADDRESS,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi tcp:\$DRC_TC_TCP_ADDRESS:\$DRC_TC_TCP_PORT 
 fi
 EOF
 end script

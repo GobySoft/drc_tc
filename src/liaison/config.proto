@@ -36,6 +36,8 @@ message DRCGUIConfig
 
   optional string tcp_address = 102;
   optional int32 tcp_port = 103;
+
+  optional string tunnel_address = 104 [default = "172.19.5.1/24"];
   
   optional string this_config_location = 200 [default = "/etc/drc_tc/drc_tc.pb.cfg"];
   

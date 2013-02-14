@@ -46,7 +46,8 @@ drc_tc::DRCLiaisonGUI::DRCLiaisonGUI(const DRCGUIConfig& cfg,
       current_group_(new Wt::WGroupBox("Current settings", status_group_)),
       pb_cfg_text_(new WText("<pre>" + cfg.DebugString() + "</pre>", current_group_)),
       tc_group_(new Wt::WGroupBox("tc", status_group_)),
-      tc_show_text_(new WText(tc_group_))
+      tc_show_text_(new WText(tc_group_)),
+      drc_tc_has_error_(false)
 {
     // re-read the configuration upon construction
     std::ifstream cfg_file(cfg_.this_config_location().c_str());
@@ -102,7 +103,7 @@ void drc_tc::DRCLiaisonGUI::create_layout()
     rate_control_enabled->setChecked(cfg_.do_rate_control());
     rate_control_enabled->checked().connect(boost::bind(&DRCLiaisonGUI::do_set_rate_enabled, this, true));
     rate_control_enabled->unChecked().connect(boost::bind(&DRCLiaisonGUI::do_set_rate_enabled, this, false));
-    Wt::WContainerWidget* rate_group = add_slider_box(desc->FindFieldByNumber(11), 0, 1000, update_box); // max_rate
+    Wt::WContainerWidget* rate_group = add_slider_box(desc->FindFieldByNumber(11), 1, 1000, update_box); // max_rate
 
     if(!cfg_.do_rate_control()) rate_group->setDisabled(true);
     rate_control_enabled->checked().connect(boost::bind(&Wt::WContainerWidget::setDisabled, rate_group, false));
@@ -120,6 +121,11 @@ void drc_tc::DRCLiaisonGUI::create_layout()
     rate_unit_box->activated().connect(this, &DRCLiaisonGUI::do_set_rate_units);
     rate_group->addWidget(new WBreak());
     rate_group->addWidget(new WBreak());
+
+    Wt::WGroupBox* tunnel_address_group = new Wt::WGroupBox(desc->FindFieldByNumber(104)->name(),
+                                           update_box); // tunnel_address
+    Wt::WLineEdit* tunnel_address_edit = new Wt::WLineEdit(cfg_.tunnel_address(), tunnel_address_group);
+    tunnel_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_tunnel_address, this, tunnel_address_edit));
     
     add_slider_box(desc->FindFieldByNumber(100), 0, 100, update_box, false); // tunnel_num
 
@@ -137,7 +143,6 @@ void drc_tc::DRCLiaisonGUI::create_layout()
 
     tcp_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(102)->name(),
                                            update_box); // tcp_address
-    
     Wt::WLineEdit* tcp_address_edit = new Wt::WLineEdit(cfg_.tcp_address(), tcp_address_group_);
     tcp_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_tcp_address, this, tcp_address_edit));
     
@@ -215,7 +220,7 @@ void drc_tc::DRCLiaisonGUI::do_apply()
     glog.is(DEBUG1, lock) && glog << "Cfg: " << cfg_.DebugString() <<  std::endl << unlock;
     pb_cfg_text_->setText("<pre>" + cfg_.DebugString() + "</pre>");
 
-    if(cfg_.SerializeAsString() == last_cfg_.SerializeAsString())
+    if(!drc_tc_has_error_ && cfg_.SerializeAsString() == last_cfg_.SerializeAsString())
     {
         glog.is(DEBUG1, lock) && glog << "No changes to config... ignoring apply" << std::endl << unlock;
         return;
@@ -233,7 +238,10 @@ void drc_tc::DRCLiaisonGUI::do_apply()
         glog.is(WARN, lock) && glog << "Could not open file: " << cfg_.this_config_location() << " for writing back configuration changes." << std::endl;
     }
 
-    if(cfg_.tunnel_type() != last_cfg_.tunnel_type() ||
+    if(drc_tc_has_error_ ||
+       cfg_.tunnel_type() != last_cfg_.tunnel_type() ||
+       cfg_.tunnel_address() != last_cfg_.tunnel_address() ||
+       cfg_.tunnel_num() != last_cfg_.tunnel_num() ||
        cfg_.tcp_address() != last_cfg_.tcp_address() ||
        cfg_.tcp_port() != last_cfg_.tcp_port())
 
@@ -270,7 +278,7 @@ void drc_tc::DRCLiaisonGUI::check_status()
         
     /* Open the command for reading. */
     std::stringstream netem_command, result;
-    netem_command << "/sbin/tc qdisc show dev tun" << cfg_.tunnel_num();
+    netem_command << "/sbin/tc qdisc show dev tun" << last_cfg_.tunnel_num();
     fp = popen(netem_command.str().c_str(), "r");
     if (fp)
     {
@@ -287,7 +295,8 @@ void drc_tc::DRCLiaisonGUI::check_status()
             tc_show_text_->setDecorationStyle(red_text);
             std::stringstream ss;
             ss << "Error: for more details see /var/log/upstart/drc_tc.log" << std::endl;
-            switch(cfg_.tunnel_type())
+            ss << "Suggestions: check that the tunnel address \nis correct CIDR notation." << std::endl;
+            switch(last_cfg_.tunnel_type())
             {
                 case DRCGUIConfig::TCP_SERVER:
                     ss << "Check that the tcp_port is not in use." << std::endl;
@@ -300,7 +309,8 @@ void drc_tc::DRCLiaisonGUI::check_status()
             }
             tc_show_text_->setText("<pre>" + ss.str() + "</pre>");
             // so that we can retry even without changing settings.
-            last_cfg_.Clear();
+            drc_tc_has_error_ = true;
+            std::cout << std::boolalpha << drc_tc_has_error_ << std::endl;
         }
         else
         {
@@ -308,6 +318,7 @@ void drc_tc::DRCLiaisonGUI::check_status()
             tc_show_text_->setDecorationStyle(text);
             tc_show_text_->setText("<pre> # " + netem_command.str() + "\n"
                                    + result.str() + "</pre>");
+            drc_tc_has_error_ = false;
         }
     }        
 
