@@ -36,7 +36,7 @@ drc_tc::DrcTcApply::DrcTcApply() :
 {
     const google::protobuf::Descriptor* desc = DRCGUIConfig::descriptor();
 
-    std::cout << "#!/bin/bash" << std::endl;
+    std::cout << "#!/bin/bash -e" << std::endl;
     for(int i = 0, n = desc->field_count(); i < n; ++i)
     {
         std::cout << "DRC_TC_" << boost::to_upper_copy(desc->field(i)->name())

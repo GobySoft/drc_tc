@@ -9,6 +9,7 @@ stop on runlevel [!2345]
 
 pre-start script
     set -e
+    echo "Pre-start"
     test -x /usr/bin/socat || { stop; exit 0; }
     test -x @CMAKE_INSTALL_PREFIX@/bin/ipv4_address_swap || { stop; exit 0; }
     /usr/local/bin/drc_tc_parse /etc/drc_tc/drc_tc.pb.cfg > /tmp/drc_tc_env.sh
@@ -21,9 +22,9 @@ pre-start script
 if [[ \$DRC_TC_TUNNEL_TYPE == "LOOPBACK" ]]; then
    /usr/bin/socat -d -d -d TUN:172.19.5.1/24,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi exec:"/usr/local/bin/ipv4_address_swap",nofork
 elif [[ \$DRC_TC_TUNNEL_TYPE == "TCP_SERVER" ]]; then
-   /usr/bin/socat -d -d -d TUN:172.19.5.1/24,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi tcp-l:\$DRC_TC_TCP_PORT
+   /usr/bin/socat -d -d -d TUN:172.19.5.1/24,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi tcp-l:\$DRC_TC_TCP_PORT,reuseaddr,fork
 elif [[ \$DRC_TC_TUNNEL_TYPE == "TCP_CLIENT" ]]; then
-   /usr/bin/socat -d -d -d TUN:172.19.5.2/24,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi tcp:\$DRC_TC_TCP_ADDRESS:\$DRC_TC_TCP_PORT
+   /usr/bin/socat -d -d -d TUN:172.19.5.2/24,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi tcp:\$DRC_TC_TCP_ADDRESS:\$DRC_TC_TCP_PORT 
 fi
 EOF
 end script
@@ -31,6 +32,7 @@ end script
 exec /tmp/drc_tc_env.sh
 
 post-start script
-   echo "Applying netem settings"
+   set -e
+    echo "Post-start"
    @CMAKE_INSTALL_PREFIX@/bin/drc_tc_apply /etc/drc_tc/drc_tc.pb.cfg
 end script
