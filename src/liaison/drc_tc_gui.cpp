@@ -141,6 +141,7 @@ void drc_tc::DRCLiaisonGUI::create_layout()
     {
         tun_type_box->insertItem(i, DRCGUIConfig::TunnelType_Name(i));
     }
+    tun_type_box->setCurrentIndex(cfg_.tunnel_type());
     tun_type_box->activated().connect(this, &DRCLiaisonGUI::do_set_tun_type);
 
     tcp_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(102)->name(),
@@ -151,8 +152,6 @@ void drc_tc::DRCLiaisonGUI::create_layout()
     tcp_port_group_ = add_slider_box(desc->FindFieldByNumber(103), 1024, 65535, update_box, false); // tcp_port
 
     do_set_tun_type(cfg_.tunnel_type());
-
-
 }
 
 
