@@ -12,7 +12,7 @@ pre-start script
     echo "Pre-start"
     test -x /usr/bin/socat || { stop; exit 0; }
     test -x @CMAKE_INSTALL_PREFIX@/bin/ipv4_address_swap || { stop; exit 0; }
-    /usr/local/bin/drc_tc_parse /etc/drc_tc/drc_tc.pb.cfg > /tmp/drc_tc_env.sh
+    @CMAKE_INSTALL_PREFIX@/bin/drc_tc_parse /etc/drc_tc/drc_tc.pb.cfg > /tmp/drc_tc_env.sh
     chmod u+x /tmp/drc_tc_env.sh
 
    @CMAKE_INSTALL_PREFIX@/bin/drc_tc_parse /etc/drc_tc/drc_tc.pb.cfg > /tmp/drc_tc_env.sh
@@ -20,7 +20,7 @@ pre-start script
    cat >> /tmp/drc_tc_env.sh << EOF
    
 if [[ \$DRC_TC_TUNNEL_TYPE == "LOOPBACK" ]]; then
-   /usr/bin/socat -d -d -d TUN:\$DRC_TC_TUNNEL_ADDRESS,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi exec:"/usr/local/bin/ipv4_address_swap",nofork
+   /usr/bin/socat -d -d -d TUN:\$DRC_TC_TUNNEL_ADDRESS,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi exec:"@CMAKE_INSTALL_PREFIX@/bin/ipv4_address_swap",nofork
 elif [[ \$DRC_TC_TUNNEL_TYPE == "TCP_SERVER" ]]; then
    /usr/bin/socat -d -d -d TUN:\$DRC_TC_TUNNEL_ADDRESS,up,tun-name=tun\$DRC_TC_TUNNEL_NUM tcp-l:\$DRC_TC_TCP_PORT,reuseaddr,fork
 elif [[ \$DRC_TC_TUNNEL_TYPE == "TCP_CLIENT" ]]; then
