@@ -148,12 +148,12 @@ void drc_tc::DRCLiaisonGUI::create_layout()
     tun_type_box->setCurrentIndex(cfg_.tunnel_type());
     tun_type_box->activated().connect(this, &DRCLiaisonGUI::do_set_tun_type);
 
-    udp_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(102)->name(),
-                                           update_box); // udp_address
-    Wt::WLineEdit* udp_address_edit = new Wt::WLineEdit(cfg_.udp_address(), udp_address_group_);
-    udp_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_udp_address, this, udp_address_edit));
+    remote_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(102)->name(),
+                                           update_box); // remote_address
+    Wt::WLineEdit* remote_address_edit = new Wt::WLineEdit(cfg_.remote_address(), remote_address_group_);
+    remote_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_remote_address, this, remote_address_edit));
     
-    udp_port_group_ = add_slider_box(desc->FindFieldByNumber(103), 1024, 65535, update_box, false); // udp_port
+    port_group_ = add_slider_box(desc->FindFieldByNumber(103), 1024, 65535, update_box, false); // port
 
     do_set_tun_type(cfg_.tunnel_type());
 }
@@ -243,9 +243,10 @@ void drc_tc::DRCLiaisonGUI::do_apply()
     if(drc_tc_has_error_ ||
        cfg_.tunnel_type() != last_cfg_.tunnel_type() ||
        cfg_.tunnel_address() != last_cfg_.tunnel_address() ||
+       cfg_.remote_tunnel_address() != last_cfg_.remote_tunnel_address() ||
        cfg_.tunnel_num() != last_cfg_.tunnel_num() ||
-       cfg_.udp_address() != last_cfg_.udp_address() ||
-       cfg_.udp_port() != last_cfg_.udp_port())
+       cfg_.remote_address() != last_cfg_.remote_address() ||
+       cfg_.port() != last_cfg_.port())
 
     {
         do_change_tunnel();
@@ -303,15 +304,15 @@ void drc_tc::DRCLiaisonGUI::check_status()
                 switch(last_cfg_.tunnel_type())
                 {
                     case DRCGUIConfig::UDP_RECVFROM:
-                        ss << "Check that the udp_port is not in use." << std::endl;
+                        ss << "Check that the port is not in use." << std::endl;
                         break;
                     case DRCGUIConfig::UDP_SENDTO:
-                        ss << "Check that RECVFROM side's udp_address is correct" << std::endl;
+                        ss << "Check that RECVFROM side's remote_address is correct" << std::endl;
                         break;
                     case DRCGUIConfig::LOOPBACK:
                         break;
                     case DRCGUIConfig::OPENVPN:
-                        ss << "Check that the udp_port is not in use and that the remote udp_address is correct." << std::endl;
+                        ss << "Check that the port is not in use and that the remote_address is correct." << std::endl;
                         break;
                 }
                 tc_show_text_->setText("<pre>" + ss.str() + "</pre>");

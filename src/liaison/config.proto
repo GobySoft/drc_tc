@@ -35,8 +35,8 @@ message DRCGUIConfig
   }
   optional TunnelType tunnel_type = 101 [default = LOOPBACK];
 
-  optional string udp_address = 102;
-  optional int32 udp_port = 103;
+  optional string remote_address = 102;
+  optional int32 port = 103;
 
   optional string tunnel_address = 104 [default = "172.19.5.1"];
   optional string remote_tunnel_address = 105 [default = "172.19.5.2"];

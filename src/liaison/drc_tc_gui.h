@@ -55,32 +55,32 @@ namespace drc_tc
             switch(static_cast<DRCGUIConfig::TunnelType>(unit))
             {
                 case DRCGUIConfig::UDP_RECVFROM:
-                    udp_address_group_->setDisabled(true);
-                    udp_port_group_->setDisabled(false);
+                    remote_address_group_->setDisabled(true);
+                    port_group_->setDisabled(false);
                     remote_tunnel_address_group_->setDisabled(true);
                     break;
                 case DRCGUIConfig::UDP_SENDTO:
-                    udp_address_group_->setDisabled(false);
-                    udp_port_group_->setDisabled(false);
+                    remote_address_group_->setDisabled(false);
+                    port_group_->setDisabled(false);
                     remote_tunnel_address_group_->setDisabled(true);
                     break;
                 case DRCGUIConfig::LOOPBACK:
-                    udp_address_group_->setDisabled(true);
-                    udp_port_group_->setDisabled(true);
+                    remote_address_group_->setDisabled(true);
+                    port_group_->setDisabled(true);
                     remote_tunnel_address_group_->setDisabled(true);
                     break;
                 case DRCGUIConfig::OPENVPN:
-                    udp_address_group_->setDisabled(false);
-                    udp_port_group_->setDisabled(false);
+                    remote_address_group_->setDisabled(false);
+                    port_group_->setDisabled(false);
                     remote_tunnel_address_group_->setDisabled(false);
                     break;
             }
             apply_->setDisabled(false);
         }
 
-        void do_set_udp_address(Wt::WLineEdit* edit)
+        void do_set_remote_address(Wt::WLineEdit* edit)
         {
-            cfg_.set_udp_address(edit->text().narrow());
+            cfg_.set_remote_address(edit->text().narrow());
             apply_->setDisabled(false);
         }        
         
@@ -122,8 +122,8 @@ namespace drc_tc
         Wt::WTimer status_timer_;
         Wt::WGroupBox* tunnel_address_group_;
         Wt::WGroupBox* remote_tunnel_address_group_;
-        Wt::WGroupBox* udp_address_group_;
-        Wt::WContainerWidget* udp_port_group_;
+        Wt::WGroupBox* remote_address_group_;
+        Wt::WContainerWidget* port_group_;
         Wt::WPushButton* apply_;
         
         bool drc_tc_has_error_;
