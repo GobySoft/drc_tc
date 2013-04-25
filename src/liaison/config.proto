@@ -31,13 +31,15 @@ message DRCGUIConfig
     LOOPBACK = 0;
     UDP_RECVFROM = 1;
     UDP_SENDTO = 2;
+    OPENVPN = 3;
   }
   optional TunnelType tunnel_type = 101 [default = LOOPBACK];
 
   optional string udp_address = 102;
   optional int32 udp_port = 103;
 
-  optional string tunnel_address = 104 [default = "172.19.5.1/24"];
+  optional string tunnel_address = 104 [default = "172.19.5.1"];
+  optional string remote_tunnel_address = 105 [default = "172.19.5.2"];
   
   optional string this_config_location = 200 [default = "/etc/drc_tc/drc_tc.pb.cfg"];
   

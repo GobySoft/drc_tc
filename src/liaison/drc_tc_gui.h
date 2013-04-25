@@ -57,14 +57,22 @@ namespace drc_tc
                 case DRCGUIConfig::UDP_RECVFROM:
                     udp_address_group_->setDisabled(true);
                     udp_port_group_->setDisabled(false);
+                    remote_tunnel_address_group_->setDisabled(true);
                     break;
                 case DRCGUIConfig::UDP_SENDTO:
                     udp_address_group_->setDisabled(false);
                     udp_port_group_->setDisabled(false);
+                    remote_tunnel_address_group_->setDisabled(true);
                     break;
                 case DRCGUIConfig::LOOPBACK:
                     udp_address_group_->setDisabled(true);
                     udp_port_group_->setDisabled(true);
+                    remote_tunnel_address_group_->setDisabled(true);
+                    break;
+                case DRCGUIConfig::OPENVPN:
+                    udp_address_group_->setDisabled(false);
+                    udp_port_group_->setDisabled(false);
+                    remote_tunnel_address_group_->setDisabled(false);
                     break;
             }
             apply_->setDisabled(false);
@@ -79,6 +87,12 @@ namespace drc_tc
         void do_set_tunnel_address(Wt::WLineEdit* edit)
         {
             cfg_.set_tunnel_address(edit->text().narrow());
+            apply_->setDisabled(false);
+        }        
+
+        void do_set_remote_tunnel_address(Wt::WLineEdit* edit)
+        {
+            cfg_.set_remote_tunnel_address(edit->text().narrow());
             apply_->setDisabled(false);
         }        
 
@@ -106,6 +120,8 @@ namespace drc_tc
         Wt::WGroupBox* ip_group_;
         Wt::WText* ip_show_text_;
         Wt::WTimer status_timer_;
+        Wt::WGroupBox* tunnel_address_group_;
+        Wt::WGroupBox* remote_tunnel_address_group_;
         Wt::WGroupBox* udp_address_group_;
         Wt::WContainerWidget* udp_port_group_;
         Wt::WPushButton* apply_;

@@ -20,11 +20,13 @@ pre-start script
    cat >> /tmp/drc_tc_env.sh << EOF
    
 if [[ \$DRC_TC_TUNNEL_TYPE == "LOOPBACK" ]]; then
-   /usr/bin/socat TUN:\$DRC_TC_TUNNEL_ADDRESS,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi exec:"@CMAKE_INSTALL_PREFIX@/bin/ipv4_address_swap",nofork
+   /usr/bin/socat TUN:\$DRC_TC_TUNNEL_ADDRESS/24,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi exec:"@CMAKE_INSTALL_PREFIX@/bin/ipv4_address_swap",nofork
 elif [[ \$DRC_TC_TUNNEL_TYPE == "UDP_RECVFROM" ]]; then
-   /usr/bin/socat TUN:\$DRC_TC_TUNNEL_ADDRESS,up,tun-name=tun\$DRC_TC_TUNNEL_NUM udp-recvfrom:\$DRC_TC_UDP_PORT,reuseaddr,fork
+   /usr/bin/socat TUN:\$DRC_TC_TUNNEL_ADDRESS/24,up,tun-name=tun\$DRC_TC_TUNNEL_NUM udp-recvfrom:\$DRC_TC_UDP_PORT,reuseaddr,fork
 elif [[ \$DRC_TC_TUNNEL_TYPE == "UDP_SENDTO" ]]; then
-   /usr/bin/socat TUN:\$DRC_TC_TUNNEL_ADDRESS,up,tun-name=tun\$DRC_TC_TUNNEL_NUM udp-sendto:\$DRC_TC_UDP_ADDRESS:\$DRC_TC_UDP_PORT 
+   /usr/bin/socat TUN:\$DRC_TC_TUNNEL_ADDRESS/24,up,tun-name=tun\$DRC_TC_TUNNEL_NUM udp-sendto:\$DRC_TC_UDP_ADDRESS:\$DRC_TC_UDP_PORT 
+elif [[ \$DRC_TC_TUNNEL_TYPE == "OPENVPN" ]]; then
+   /usr/sbin/openvpn --dev tun\$DRC_TC_TUNNEL_NUM --ifconfig \$DRC_TC_TUNNEL_ADDRESS \$DRC_TC_REMOTE_TUNNEL_ADDRESS --remote \$DRC_TC_UDP_ADDRESS --port \$DRC_TC_UDP_PORT 
 fi
 EOF
 end script

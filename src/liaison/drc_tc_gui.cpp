@@ -124,10 +124,14 @@ void drc_tc::DRCLiaisonGUI::create_layout()
     rate_group->addWidget(new WBreak());
     rate_group->addWidget(new WBreak());
 
-    Wt::WGroupBox* tunnel_address_group = new Wt::WGroupBox(desc->FindFieldByNumber(104)->name(),
-                                           update_box); // tunnel_address
-    Wt::WLineEdit* tunnel_address_edit = new Wt::WLineEdit(cfg_.tunnel_address(), tunnel_address_group);
+    tunnel_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(104)->name(), update_box); // tunnel_address
+    Wt::WLineEdit* tunnel_address_edit = new Wt::WLineEdit(cfg_.tunnel_address(), tunnel_address_group_);
     tunnel_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_tunnel_address, this, tunnel_address_edit));
+
+    remote_tunnel_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(105)->name(), update_box); // remote_tunnel_address
+    Wt::WLineEdit* remote_tunnel_address_edit = new Wt::WLineEdit(cfg_.remote_tunnel_address(), remote_tunnel_address_group_);
+    remote_tunnel_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_remote_tunnel_address, this, remote_tunnel_address_edit));
+
     
     add_slider_box(desc->FindFieldByNumber(100), 0, 100, update_box, false); // tunnel_num
 
@@ -302,9 +306,12 @@ void drc_tc::DRCLiaisonGUI::check_status()
                         ss << "Check that the udp_port is not in use." << std::endl;
                         break;
                     case DRCGUIConfig::UDP_SENDTO:
-                        ss << "Check that RECVFROM side's udp_address is correct \nand that the server is running." << std::endl;
+                        ss << "Check that RECVFROM side's udp_address is correct" << std::endl;
                         break;
                     case DRCGUIConfig::LOOPBACK:
+                        break;
+                    case DRCGUIConfig::OPENVPN:
+                        ss << "Check that the udp_port is not in use and that the remote udp_address is correct." << std::endl;
                         break;
                 }
                 tc_show_text_->setText("<pre>" + ss.str() + "</pre>");
