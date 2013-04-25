@@ -29,9 +29,7 @@ message DRCGUIConfig
   enum TunnelType
   {
     LOOPBACK = 0;
-    UDP_RECVFROM = 1;
-    UDP_SENDTO = 2;
-    OPENVPN = 3;
+    OPENVPN = 1;
   }
   optional TunnelType tunnel_type = 101 [default = LOOPBACK];
 

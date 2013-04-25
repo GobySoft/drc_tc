@@ -54,16 +54,6 @@ namespace drc_tc
             cfg_.set_tunnel_type(static_cast<DRCGUIConfig::TunnelType>(unit));
             switch(static_cast<DRCGUIConfig::TunnelType>(unit))
             {
-                case DRCGUIConfig::UDP_RECVFROM:
-                    remote_address_group_->setDisabled(true);
-                    port_group_->setDisabled(false);
-                    remote_tunnel_address_group_->setDisabled(true);
-                    break;
-                case DRCGUIConfig::UDP_SENDTO:
-                    remote_address_group_->setDisabled(false);
-                    port_group_->setDisabled(false);
-                    remote_tunnel_address_group_->setDisabled(true);
-                    break;
                 case DRCGUIConfig::LOOPBACK:
                     remote_address_group_->setDisabled(true);
                     port_group_->setDisabled(true);

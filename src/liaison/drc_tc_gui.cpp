@@ -303,12 +303,6 @@ void drc_tc::DRCLiaisonGUI::check_status()
                 ss << "Suggestions: check that the tunnel address \nis correct CIDR notation." << std::endl;
                 switch(last_cfg_.tunnel_type())
                 {
-                    case DRCGUIConfig::UDP_RECVFROM:
-                        ss << "Check that the port is not in use." << std::endl;
-                        break;
-                    case DRCGUIConfig::UDP_SENDTO:
-                        ss << "Check that RECVFROM side's remote_address is correct" << std::endl;
-                        break;
                     case DRCGUIConfig::LOOPBACK:
                         break;
                     case DRCGUIConfig::OPENVPN:
