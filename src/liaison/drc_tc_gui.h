@@ -54,25 +54,25 @@ namespace drc_tc
             cfg_.set_tunnel_type(static_cast<DRCGUIConfig::TunnelType>(unit));
             switch(static_cast<DRCGUIConfig::TunnelType>(unit))
             {
-                case DRCGUIConfig::TCP_SERVER:
-                    tcp_address_group_->setDisabled(true);
-                    tcp_port_group_->setDisabled(false);
+                case DRCGUIConfig::UDP_RECVFROM:
+                    udp_address_group_->setDisabled(true);
+                    udp_port_group_->setDisabled(false);
                     break;
-                case DRCGUIConfig::TCP_CLIENT:
-                    tcp_address_group_->setDisabled(false);
-                    tcp_port_group_->setDisabled(false);
+                case DRCGUIConfig::UDP_SENDTO:
+                    udp_address_group_->setDisabled(false);
+                    udp_port_group_->setDisabled(false);
                     break;
                 case DRCGUIConfig::LOOPBACK:
-                    tcp_address_group_->setDisabled(true);
-                    tcp_port_group_->setDisabled(true);
+                    udp_address_group_->setDisabled(true);
+                    udp_port_group_->setDisabled(true);
                     break;
             }
             apply_->setDisabled(false);
         }
 
-        void do_set_tcp_address(Wt::WLineEdit* edit)
+        void do_set_udp_address(Wt::WLineEdit* edit)
         {
-            cfg_.set_tcp_address(edit->text().narrow());
+            cfg_.set_udp_address(edit->text().narrow());
             apply_->setDisabled(false);
         }        
         
@@ -106,8 +106,8 @@ namespace drc_tc
         Wt::WGroupBox* ip_group_;
         Wt::WText* ip_show_text_;
         Wt::WTimer status_timer_;
-        Wt::WGroupBox* tcp_address_group_;
-        Wt::WContainerWidget* tcp_port_group_;
+        Wt::WGroupBox* udp_address_group_;
+        Wt::WContainerWidget* udp_port_group_;
         Wt::WPushButton* apply_;
         
         bool drc_tc_has_error_;

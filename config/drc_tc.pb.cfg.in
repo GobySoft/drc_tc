@@ -8,10 +8,10 @@ rate_unit: KBITS_PER_SEC  #  (BYTES_PER_SEC, KBYTES_PER_SEC,
                           # MBITS_PER_SEC) (optional) 
                           # (default=KBITS_PER_SEC)
 tunnel_num: 51  #  (optional) (default=51)
-tunnel_type: LOOPBACK  #  (LOOPBACK, TCP_SERVER, TCP_CLIENT) 
+tunnel_type: LOOPBACK  #  (LOOPBACK, UDP_RECVFROM, UDP_SENDTO) 
                        # (optional) (default=LOOPBACK)
-tcp_address: ""  #  (optional)
-tcp_port: 50002  #  (optional)
+udp_address: ""  #  (optional)
+udp_port: 50002  #  (optional)
 this_config_location: "/etc/drc_tc/drc_tc.pb.cfg"  
                                               #  (optional) 
                                               # (default="/etc/drc_t

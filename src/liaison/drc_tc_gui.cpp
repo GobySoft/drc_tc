@@ -144,12 +144,12 @@ void drc_tc::DRCLiaisonGUI::create_layout()
     tun_type_box->setCurrentIndex(cfg_.tunnel_type());
     tun_type_box->activated().connect(this, &DRCLiaisonGUI::do_set_tun_type);
 
-    tcp_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(102)->name(),
-                                           update_box); // tcp_address
-    Wt::WLineEdit* tcp_address_edit = new Wt::WLineEdit(cfg_.tcp_address(), tcp_address_group_);
-    tcp_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_tcp_address, this, tcp_address_edit));
+    udp_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(102)->name(),
+                                           update_box); // udp_address
+    Wt::WLineEdit* udp_address_edit = new Wt::WLineEdit(cfg_.udp_address(), udp_address_group_);
+    udp_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_udp_address, this, udp_address_edit));
     
-    tcp_port_group_ = add_slider_box(desc->FindFieldByNumber(103), 1024, 65535, update_box, false); // tcp_port
+    udp_port_group_ = add_slider_box(desc->FindFieldByNumber(103), 1024, 65535, update_box, false); // udp_port
 
     do_set_tun_type(cfg_.tunnel_type());
 }
@@ -240,8 +240,8 @@ void drc_tc::DRCLiaisonGUI::do_apply()
        cfg_.tunnel_type() != last_cfg_.tunnel_type() ||
        cfg_.tunnel_address() != last_cfg_.tunnel_address() ||
        cfg_.tunnel_num() != last_cfg_.tunnel_num() ||
-       cfg_.tcp_address() != last_cfg_.tcp_address() ||
-       cfg_.tcp_port() != last_cfg_.tcp_port())
+       cfg_.udp_address() != last_cfg_.udp_address() ||
+       cfg_.udp_port() != last_cfg_.udp_port())
 
     {
         do_change_tunnel();
@@ -298,11 +298,11 @@ void drc_tc::DRCLiaisonGUI::check_status()
                 ss << "Suggestions: check that the tunnel address \nis correct CIDR notation." << std::endl;
                 switch(last_cfg_.tunnel_type())
                 {
-                    case DRCGUIConfig::TCP_SERVER:
-                        ss << "Check that the tcp_port is not in use." << std::endl;
+                    case DRCGUIConfig::UDP_RECVFROM:
+                        ss << "Check that the udp_port is not in use." << std::endl;
                         break;
-                    case DRCGUIConfig::TCP_CLIENT:
-                        ss << "Check that server's tcp_address is correct \nand that the server is running." << std::endl;
+                    case DRCGUIConfig::UDP_SENDTO:
+                        ss << "Check that RECVFROM side's udp_address is correct \nand that the server is running." << std::endl;
                         break;
                     case DRCGUIConfig::LOOPBACK:
                         break;
