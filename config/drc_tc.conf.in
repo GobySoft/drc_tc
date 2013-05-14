@@ -22,7 +22,12 @@ pre-start script
 if [[ \$DRC_TC_TUNNEL_TYPE == "LOOPBACK" ]]; then
    /usr/bin/socat TUN:\$DRC_TC_TUNNEL_ADDRESS/24,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi exec:"@CMAKE_INSTALL_PREFIX@/bin/ipv4_address_swap",nofork
 elif [[ \$DRC_TC_TUNNEL_TYPE == "OPENVPN" ]]; then
-   /usr/sbin/openvpn --dev tun\$DRC_TC_TUNNEL_NUM --ifconfig \$DRC_TC_TUNNEL_ADDRESS \$DRC_TC_REMOTE_TUNNEL_ADDRESS --remote \$DRC_TC_REMOTE_ADDRESS --port \$DRC_TC_PORT 
+   if [ -n "\$DRC_TC_REMOTE_ADDRESS" ]; then
+       DRC_TC_REMOTE_ADDRESS_COMMAND="--remote \$DRC_TC_REMOTE_ADDRESS"
+   else
+      DRC_TC_REMOTE_ADDRESS_COMMAND=""
+   fi
+   /usr/sbin/openvpn --dev tun\$DRC_TC_TUNNEL_NUM --ifconfig \$DRC_TC_TUNNEL_ADDRESS \$DRC_TC_REMOTE_TUNNEL_ADDRESS \$DRC_TC_REMOTE_ADDRESS_COMMAND  --port \$DRC_TC_PORT 
 fi
 EOF
 end script
