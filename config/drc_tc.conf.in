@@ -27,7 +27,7 @@ elif [[ \$DRC_TC_TUNNEL_TYPE == "OPENVPN" ]]; then
    else
       DRC_TC_REMOTE_ADDRESS_COMMAND=""
    fi
-   /usr/sbin/openvpn --dev tun\$DRC_TC_TUNNEL_NUM --ifconfig \$DRC_TC_TUNNEL_ADDRESS \$DRC_TC_REMOTE_TUNNEL_ADDRESS \$DRC_TC_REMOTE_ADDRESS_COMMAND  --port \$DRC_TC_PORT 
+   /usr/sbin/openvpn --dev tun\$DRC_TC_TUNNEL_NUM --ifconfig \$DRC_TC_TUNNEL_ADDRESS \$DRC_TC_REMOTE_TUNNEL_ADDRESS \$DRC_TC_REMOTE_ADDRESS_COMMAND  --port \$DRC_TC_PORT --mssfix 1200 --fragment 1200
 fi
 EOF
 end script
