@@ -38,4 +38,9 @@ post-start script
    set -e
     echo "Post-start"
    @CMAKE_INSTALL_PREFIX@/bin/drc_tc_apply /etc/drc_tc/drc_tc.pb.cfg
+   route add -net 10.0.0.0 netmask 255.255.0.0 gw 11.8.0.1
+end script
+
+post-stop script
+   route del -net 10.0.0.0 netmask 255.255.0.0 
 end script
