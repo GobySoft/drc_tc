@@ -13,26 +13,27 @@ namespace drc_tc
     class DrcTcApply : public goby::common::ApplicationBase
     {
     public:
-        DrcTcApply();
+        DrcTcApply(DRCGUIConfig* cfg);
         
     private:
         void iterate() { }
         void tc_system(const std::stringstream& netem_command);
     private:
-        static DRCGUIConfig cfg_;
+        DRCGUIConfig& cfg_;
         
     };
 }
 
-DRCGUIConfig drc_tc::DrcTcApply::cfg_;
 
 int main(int argc, char* argv[])
 {
-    goby::run<drc_tc::DrcTcApply>(argc, argv);
+    DRCGUIConfig cfg;
+    goby::run<drc_tc::DrcTcApply>(argc, argv, &cfg);
 }
                             
-drc_tc::DrcTcApply::DrcTcApply() :
-    ApplicationBase(&cfg_)
+drc_tc::DrcTcApply::DrcTcApply(DRCGUIConfig* cfg) :
+    ApplicationBase(cfg),
+    cfg_(*cfg)
 {
     const google::protobuf::Descriptor* desc = DRCGUIConfig::descriptor();
 
