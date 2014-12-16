@@ -166,7 +166,7 @@ Wt::WContainerWidget* drc_tc::DRCLiaisonGUI::add_slider_box(const google::protob
     int start = cfg_.GetReflection()->GetInt32(cfg_, field);
     
     Wt::WSpinBox *box = new Wt::WSpinBox(group);
-    box->setNativeControl(true);
+//    box->setNativeControl(true);
     box->setMinimum(min);
     box->setMaximum(max);
     box->setValue(start);
@@ -175,7 +175,7 @@ Wt::WContainerWidget* drc_tc::DRCLiaisonGUI::add_slider_box(const google::protob
     if(has_slider)
     {
         Wt::WSlider *slider = new Wt::WSlider(Wt::Horizontal, group);
-        slider->setNativeControl(true);
+        //      slider->setNativeControl(true);
         slider->setMinimum(min);
         slider->setMaximum(max);
         slider->setValue(start);
