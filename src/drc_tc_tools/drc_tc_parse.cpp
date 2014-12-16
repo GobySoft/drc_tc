@@ -3,7 +3,6 @@
 #include "config.pb.h"
 
 using namespace goby::common::logger;
-using goby::common::logger_lock::lock;
 using goby::glog;
 
 

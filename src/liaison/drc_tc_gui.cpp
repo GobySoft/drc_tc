@@ -20,7 +20,6 @@
 
 using namespace Wt;
 using namespace goby::common::logger;
-using goby::common::logger_lock::lock;
 using goby::glog;
 
 extern "C"
@@ -60,7 +59,7 @@ drc_tc::DRCLiaisonGUI::DRCLiaisonGUI(const DRCGUIConfig& cfg,
     }
     else
     {
-        glog.is(WARN, lock) && glog << "Could not open file: " << cfg_.this_config_location() << " for reading back configuration changes." << std::endl;
+        glog.is(WARN) && glog << "Could not open file: " << cfg_.this_config_location() << " for reading back configuration changes." << std::endl;
     }
 
     set_name("DRCTrafficControl");
@@ -204,11 +203,11 @@ void drc_tc::DRCLiaisonGUI::do_set_int32_value(int value, const google::protobuf
 
 void drc_tc::DRCLiaisonGUI::tc_system(const std::stringstream& netem_command)
 {
-    glog.is(DEBUG1, lock) && glog << "System: " << netem_command.str() <<  std::endl << unlock;    
+    glog.is(DEBUG1) && glog << "System: " << netem_command.str() <<  std::endl;    
     int rc = system(netem_command.str().c_str());
     if(rc)
     {
-        glog.is(WARN, lock) && glog << "System returned code: " << rc <<  std::endl << unlock;
+        glog.is(WARN) && glog << "System returned code: " << rc <<  std::endl;
     }
     
 }
@@ -225,7 +224,7 @@ void drc_tc::DRCLiaisonGUI::do_remove()
 
 void drc_tc::DRCLiaisonGUI::do_apply()
 {
-    glog.is(DEBUG1, lock) && glog << "Cfg: " << cfg_.DebugString() <<  std::endl << unlock;
+    glog.is(DEBUG1) && glog << "Cfg: " << cfg_.DebugString() <<  std::endl;
     pb_cfg_text_->setText("<pre>" + cfg_.DebugString() + "</pre>");
     
     std::ofstream cfg_file(cfg_.this_config_location().c_str());
@@ -237,7 +236,7 @@ void drc_tc::DRCLiaisonGUI::do_apply()
     }
     else
     {
-        glog.is(WARN, lock) && glog << "Could not open file: " << cfg_.this_config_location() << " for writing back configuration changes." << std::endl;
+        glog.is(WARN) && glog << "Could not open file: " << cfg_.this_config_location() << " for writing back configuration changes." << std::endl;
     }
 
     if(drc_tc_has_error_ ||

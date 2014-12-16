@@ -3,7 +3,6 @@
 #include "config.pb.h"
 
 using namespace goby::common::logger;
-using goby::common::logger_lock::lock;
 using goby::glog;
 
 
@@ -76,11 +75,11 @@ drc_tc::DrcTcApply::DrcTcApply(DRCGUIConfig* cfg) :
 
 void drc_tc::DrcTcApply::tc_system(const std::stringstream& netem_command)
 {
-    glog.is(DEBUG1, lock) && glog << "System: " << netem_command.str() <<  std::endl << unlock;    
+    glog.is(DEBUG1) && glog << "System: " << netem_command.str() <<  std::endl;    
     int rc = system(netem_command.str().c_str());
     if(rc)
     {
-        glog.is(WARN, lock) && glog << "System returned code: " << rc <<  std::endl << unlock;
+        glog.is(WARN) && glog << "System returned code: " << rc <<  std::endl;
     }
     
 }
