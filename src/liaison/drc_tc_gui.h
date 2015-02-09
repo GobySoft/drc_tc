@@ -87,6 +87,25 @@ namespace drc_tc
         }        
 
 
+        void do_set_link2_remote_address(Wt::WLineEdit* edit)
+        {
+            cfg_.set_link2_remote_address(edit->text().narrow());
+            apply_->setDisabled(false);
+        }        
+        
+        void do_set_link2_tunnel_address(Wt::WLineEdit* edit)
+        {
+            cfg_.set_link2_tunnel_address(edit->text().narrow());
+            apply_->setDisabled(false);
+        }        
+        
+        void do_set_link2_blackout_file(Wt::WLineEdit* edit)
+        {
+            cfg_.set_link2_blackout_file(edit->text().narrow());
+            apply_->setDisabled(false);
+        }        
+        
+
         void do_remove();
         void do_apply();
         void do_change_tunnel();
@@ -116,6 +135,11 @@ namespace drc_tc
         Wt::WContainerWidget* port_group_;
         Wt::WPushButton* apply_;
         
+        Wt::WGroupBox* link2_tunnel_address_group_;
+        Wt::WGroupBox* link2_remote_address_group_;
+        Wt::WGroupBox* link2_blackout_file_group_;
+
+
         bool drc_tc_has_error_;
 
     };

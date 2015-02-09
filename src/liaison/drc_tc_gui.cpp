@@ -92,19 +92,48 @@ void drc_tc::DRCLiaisonGUI::create_layout()
     new Wt::WBreak(update_box);
     new Wt::WBreak(update_box);
 
+   
+    const google::protobuf::Descriptor* desc = cfg_.GetDescriptor();
+ 
+    
+    Wt::WGroupBox* link2_box = new Wt::WGroupBox("Link2 (blackout intervals) settings: ", update_box);    
 
     
-    const google::protobuf::Descriptor* desc = cfg_.GetDescriptor();
-    add_slider_box(desc->FindFieldByNumber(1), 0, 5000, update_box); // latency_ms
-    add_slider_box(desc->FindFieldByNumber(2), 0, 100, update_box); // drop_percentage
+    add_slider_box(desc->FindFieldByNumber(300), 0, 100, link2_box, false); // tunnel_num
+
+    link2_tunnel_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(301)->name(), link2_box); // tunnel_address
+    Wt::WLineEdit* link2_tunnel_address_edit = new Wt::WLineEdit(cfg_.link2_tunnel_address(), link2_tunnel_address_group_);
+    link2_tunnel_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_link2_tunnel_address, this, link2_tunnel_address_edit));
+
+    link2_remote_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(302)->name(), link2_box); // remote_address
+    Wt::WLineEdit* link2_remote_address_edit = new Wt::WLineEdit(cfg_.link2_remote_address(), link2_remote_address_group_);
+    link2_remote_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_link2_remote_address, this, link2_remote_address_edit));
+
+    add_slider_box(desc->FindFieldByNumber(303), 1024, 65535, link2_box, false); // port
+
+    
+    link2_blackout_file_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(304)->name(), link2_box); // blackout_file
+    Wt::WLineEdit* link2_blackout_file_edit = new Wt::WLineEdit(cfg_.link2_blackout_file(), link2_blackout_file_group_);
+    link2_blackout_file_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_link2_blackout_file, this, link2_blackout_file_edit));
+
+    new Wt::WBreak(link2_box);
+
+    Wt::WPushButton* restart = new Wt::WPushButton("Restart Blackout File", link2_box);
+    restart->clicked().connect(this, &drc_tc::DRCLiaisonGUI::do_change_tunnel);
+
+
+    
+    Wt::WGroupBox* link3_box = new Wt::WGroupBox("Link3 (always on) settings: ", update_box);    
+    add_slider_box(desc->FindFieldByNumber(1), 0, 5000, link3_box); // latency_ms
+    add_slider_box(desc->FindFieldByNumber(2), 0, 100, link3_box); // drop_percentage
 
     new Wt::WText(desc->FindFieldByNumber(10)->name(),
-                  update_box); // do rate control
-    Wt::WCheckBox* rate_control_enabled = new Wt::WCheckBox(update_box);
+                  link3_box); // do rate control
+    Wt::WCheckBox* rate_control_enabled = new Wt::WCheckBox(link3_box);
     rate_control_enabled->setChecked(cfg_.do_rate_control());
     rate_control_enabled->checked().connect(boost::bind(&DRCLiaisonGUI::do_set_rate_enabled, this, true));
     rate_control_enabled->unChecked().connect(boost::bind(&DRCLiaisonGUI::do_set_rate_enabled, this, false));
-    Wt::WContainerWidget* rate_group = add_slider_box(desc->FindFieldByNumber(11), 1, 1000, update_box); // max_rate
+    Wt::WContainerWidget* rate_group = add_slider_box(desc->FindFieldByNumber(11), 1, 1000, link3_box); // max_rate
 
     if(!cfg_.do_rate_control()) rate_group->setDisabled(true);
     rate_control_enabled->checked().connect(boost::bind(&Wt::WContainerWidget::setDisabled, rate_group, false));
@@ -123,19 +152,19 @@ void drc_tc::DRCLiaisonGUI::create_layout()
     rate_group->addWidget(new WBreak());
     rate_group->addWidget(new WBreak());
 
-    tunnel_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(104)->name(), update_box); // tunnel_address
+    tunnel_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(104)->name(), link3_box); // tunnel_address
     Wt::WLineEdit* tunnel_address_edit = new Wt::WLineEdit(cfg_.tunnel_address(), tunnel_address_group_);
     tunnel_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_tunnel_address, this, tunnel_address_edit));
 
-    remote_tunnel_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(105)->name(), update_box); // remote_tunnel_address
+    remote_tunnel_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(105)->name(), link3_box); // remote_tunnel_address
     Wt::WLineEdit* remote_tunnel_address_edit = new Wt::WLineEdit(cfg_.remote_tunnel_address(), remote_tunnel_address_group_);
     remote_tunnel_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_remote_tunnel_address, this, remote_tunnel_address_edit));
 
     
-    add_slider_box(desc->FindFieldByNumber(100), 0, 100, update_box, false); // tunnel_num
+    add_slider_box(desc->FindFieldByNumber(100), 0, 100, link3_box, false); // tunnel_num
 
     Wt::WGroupBox* tun_type_group = new Wt::WGroupBox(desc->FindFieldByNumber(101)->name(),
-                                                      update_box); // tunnel_type
+                                                      link3_box); // tunnel_type
     
     Wt::WComboBox* tun_type_box = new Wt::WComboBox(tun_type_group);
 
@@ -148,11 +177,11 @@ void drc_tc::DRCLiaisonGUI::create_layout()
     tun_type_box->activated().connect(this, &DRCLiaisonGUI::do_set_tun_type);
 
     remote_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(102)->name(),
-                                           update_box); // remote_address
+                                           link3_box); // remote_address
     Wt::WLineEdit* remote_address_edit = new Wt::WLineEdit(cfg_.remote_address(), remote_address_group_);
     remote_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_remote_address, this, remote_address_edit));
     
-    port_group_ = add_slider_box(desc->FindFieldByNumber(103), 1024, 65535, update_box, false); // port
+    port_group_ = add_slider_box(desc->FindFieldByNumber(103), 1024, 65535, link3_box, false); // port
 
     do_set_tun_type(cfg_.tunnel_type());
 }
@@ -245,8 +274,12 @@ void drc_tc::DRCLiaisonGUI::do_apply()
        cfg_.remote_tunnel_address() != last_cfg_.remote_tunnel_address() ||
        cfg_.tunnel_num() != last_cfg_.tunnel_num() ||
        cfg_.remote_address() != last_cfg_.remote_address() ||
-       cfg_.port() != last_cfg_.port())
-
+       cfg_.port() != last_cfg_.port() ||
+       cfg_.link2_tunnel_address() != last_cfg_.link2_tunnel_address() ||
+       cfg_.link2_tunnel_num() != last_cfg_.link2_tunnel_num() ||
+       cfg_.link2_remote_address() != last_cfg_.link2_remote_address() ||
+       cfg_.link2_remote_port() != last_cfg_.link2_remote_port() ||
+       cfg_.link2_blackout_file() != last_cfg_.link2_blackout_file())
     {
         do_change_tunnel();
     }
@@ -267,6 +300,11 @@ void drc_tc::DRCLiaisonGUI::do_change_tunnel()
     {        
         std::stringstream command;
         command << "service drc_tc restart" << std::endl;        
+        tc_system(command);
+    }
+    {        
+        std::stringstream command;
+        command << "service drc_tc_link2 restart" << std::endl;        
         tc_system(command);
     }
 }

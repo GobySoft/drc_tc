@@ -1,4 +1,4 @@
-
+link2_blackout_file: "/etc/drc_tc/blackout-file-sample.csv"
 latency_ms: 0  #  (optional) (default=0)
 drop_percentage: 0  #  (optional) (default=0)
 do_rate_control: true  #  (optional) (default=false)
