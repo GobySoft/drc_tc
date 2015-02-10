@@ -72,6 +72,9 @@ drc_tc::DrcTcApply::DrcTcApply(DRCGUIConfig* cfg) :
         if(buffer_size < 1600)
             buffer_size = 1600;
         
+        // trying to get the right buffer size is tricky. Adding this in to reduce dropped packets 
+        buffer_size *= 2;
+        
         netem_command << buffer_size;
         netem_command << " latency 10ms";
         

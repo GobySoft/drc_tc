@@ -133,7 +133,7 @@ void drc_tc::DRCLiaisonGUI::create_layout()
     rate_control_enabled->setChecked(cfg_.do_rate_control());
     rate_control_enabled->checked().connect(boost::bind(&DRCLiaisonGUI::do_set_rate_enabled, this, true));
     rate_control_enabled->unChecked().connect(boost::bind(&DRCLiaisonGUI::do_set_rate_enabled, this, false));
-    Wt::WContainerWidget* rate_group = add_slider_box(desc->FindFieldByNumber(11), 1, 1000, link3_box); // max_rate
+    Wt::WContainerWidget* rate_group = add_slider_box(desc->FindFieldByNumber(11), 1, 10000, link3_box); // max_rate
 
     if(!cfg_.do_rate_control()) rate_group->setDisabled(true);
     rate_control_enabled->checked().connect(boost::bind(&Wt::WContainerWidget::setDisabled, rate_group, false));
