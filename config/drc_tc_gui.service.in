@@ -1,0 +1,14 @@
+[Unit]
+Description="MIT DARPA Robotics Challenge Traffic Controlled Tunnel GUI"
+After=network.target
+
+[Service]
+Type=simple
+Environment=GOBY_LIAISON_PLUGINS=@CMAKE_INSTALL_PREFIX@/lib/libliaison_plugins_drc_tc.so
+Environment=TMP_LIAISON_CFG=/tmp/goby_liaison.pb.cfg
+ExecStartPre=/bin/bash -c "   (cat /etc/drc_tc/drc_goby_liaison.pb.cfg; echo '[drc_gui_config] { ';  cat /etc/drc_tc/drc_tc.pb.cfg; echo '}') > $TMP_LIAISON_CFG"
+ExecStart=/home/gobysoft/goby3/build/bin/goby_liaison $TMP_LIAISON_CFG
+
+[Install]
+WantedBy=multi-user.target
+
