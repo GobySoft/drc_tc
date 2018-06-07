@@ -3,8 +3,9 @@ project(drc_tc)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
 
-find_package(Goby REQUIRED)
-include_directories(${GOBY_INCLUDE_DIRS})
+find_package(GOBY REQUIRED)
+get_target_property(GOBY_INCLUDE_DIR goby_middleware INTERFACE_INCLUDE_DIRECTORIES)
+include_directories(${GOBY_INCLUDE_DIR})
 
 # protocol buffers - http://code.google.com/apis/protocolbuffers/
 find_package(ProtobufLocal REQUIRED)
