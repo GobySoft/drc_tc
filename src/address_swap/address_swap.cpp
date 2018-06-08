@@ -11,22 +11,35 @@ int main() {
     while(1)
     {        
         std::cin.read(&ipv4header_buffer[0], 1);
+	int version  = (ipv4header_buffer[0] >> 4) & 0x0f;
+	//	std::cerr << "version: " << version << std::endl;
+	
+	if(version == 6)
+	  {
+	    int ipv6header_length = 40;
+	    std::cin.read(&ipv4header_buffer[1], ipv6header_length-1);
+	    unsigned int payload_length = ((static_cast<unsigned int>(ipv4header_buffer[4]) & 0xff) << 8) | (ipv4header_buffer[5] & 0xff);
+	    std::cin.read(&data_buffer[0], payload_length);
+	    continue;
+	  }
+	
         const int BYTES_PER_WORD = 4;
         int ipv4header_length = (ipv4header_buffer[0] & 0x0f) * BYTES_PER_WORD;
-//        std::cerr << "Ipv4header length (bytes): " << ipv4header_length << std::endl;
+	//        std::cerr << "Ipv4header length (bytes): " << ipv4header_length << std::endl;
+	
         std::cin.read(&ipv4header_buffer[1], ipv4header_length-1);
     
-//        for(int i = 0; i < ipv4header_length; ++i)
-//            std::cerr << std::dec <<  i << ": " << std::hex << ((unsigned int)ipv4header_buffer[i] & 0xff) << std::endl;
+	//        for(int i = 0; i < ipv4header_length; ++i)
+	//  std::cerr << std::dec <<  i << ": " << std::hex << ((unsigned int)ipv4header_buffer[i] & 0xff) << std::endl;
 
         unsigned int total_length = ((static_cast<unsigned int>(ipv4header_buffer[2]) & 0xff) << 8) | (ipv4header_buffer[3] & 0xff);
-//        std::cerr << std::dec << "Total length (bytes): " << total_length << std::endl;
+        //std::cerr << std::dec << "Total length (bytes): " << total_length << std::endl;
 
         unsigned int data_length = total_length-ipv4header_length;
         std::cin.read(&data_buffer[0], data_length);
     
-//        for(int i = 0; i < data_length; ++i)
-//            std::cerr << std::dec <<  i << ": " << std::hex << (int)data_buffer[i] << std::endl;
+        //for(int i = 0; i < data_length; ++i)
+        //    std::cerr << std::dec <<  i << ": " << std::hex << (int)data_buffer[i] << std::endl;
 
         // write source as dest
         memcpy(&source_addr[0], &ipv4header_buffer[12], 4);

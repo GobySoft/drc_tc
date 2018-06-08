@@ -8,29 +8,7 @@ start on filesystem or runlevel [2345]
 stop on runlevel [!2345]
 
 pre-start script
-    set -e
-    echo "Pre-start"
-    test -x /usr/bin/socat || { stop; exit 0; }
-    test -x @CMAKE_INSTALL_PREFIX@/bin/ipv4_address_swap || { stop; exit 0; }
-    @CMAKE_INSTALL_PREFIX@/bin/drc_tc_parse /etc/drc_tc/drc_tc.pb.cfg > /tmp/drc_tc_env.sh
-    chmod u+x /tmp/drc_tc_env.sh
-
-   @CMAKE_INSTALL_PREFIX@/bin/drc_tc_parse /etc/drc_tc/drc_tc.pb.cfg > /tmp/drc_tc_env.sh
-   chmod u+x /tmp/drc_tc_env.sh
-   cat >> /tmp/drc_tc_env.sh << EOF
-   
-if [[ \$DRC_TC_TUNNEL_TYPE == "LOOPBACK" ]]; then
-   /usr/bin/socat TUN:\$DRC_TC_TUNNEL_ADDRESS/24,up,tun-name=tun\$DRC_TC_TUNNEL_NUM,iff-no-pi exec:"@CMAKE_INSTALL_PREFIX@/bin/ipv4_address_swap",nofork
-elif [[ \$DRC_TC_TUNNEL_TYPE == "OPENVPN" ]]; then
-   if [ -n "\$DRC_TC_REMOTE_ADDRESS" ]; then
-       DRC_TC_REMOTE_ADDRESS_COMMAND="--remote \$DRC_TC_REMOTE_ADDRESS"
-   else
-      DRC_TC_REMOTE_ADDRESS_COMMAND=""
-   fi
-   /usr/sbin/openvpn --dev tun\$DRC_TC_TUNNEL_NUM --ifconfig \$DRC_TC_TUNNEL_ADDRESS \$DRC_TC_REMOTE_TUNNEL_ADDRESS \$DRC_TC_REMOTE_ADDRESS_COMMAND  --port \$DRC_TC_PORT --mssfix 1200 --fragment 1200
-fi
-
-EOF
+   @CMAKE_INSTALL_PREFIX@/bin/drc_gen.sh
 end script
 
 exec /tmp/drc_tc_env.sh

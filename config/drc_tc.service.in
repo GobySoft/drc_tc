@@ -1,0 +1,20 @@
+# drc_tc - MIT DARPA Robotics Challenge Traffic Controlled Tunnel
+#
+# Simulates restricted access tunnel
+
+[Unit]
+Description="MIT DARPA Robotics Challenge Traffic Controlled Tunnel"
+After=network.target
+
+[Service]
+Type=simple
+ExecStartPre=@CMAKE_INSTALL_PREFIX@/bin/drc_gen.sh
+ExecStart=/tmp/drc_tc_env.sh
+ExecStopPost=/bin/bash -c "\
+   set -e \
+    echo 'Post-start' \
+   @CMAKE_INSTALL_PREFIX@/bin/drc_tc_apply /etc/drc_tc/drc_tc.pb.cfg"
+
+[Install]
+WantedBy=multi-user.target
+

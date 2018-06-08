@@ -4,11 +4,10 @@ configure_file(drc_tc.pb.cfg.in ${CMAKE_CURRENT_BINARY_DIR}/drc_tc.pb.cfg @ONLY)
 
 
 configure_file(drc_tc.conf.in ${CMAKE_CURRENT_BINARY_DIR}/drc_tc.conf @ONLY)
+configure_file(drc_tc.service.in ${CMAKE_CURRENT_BINARY_DIR}/drc_tc.service @ONLY)
 configure_file(drc_tc_link2.conf.in ${CMAKE_CURRENT_BINARY_DIR}/drc_tc_link2.conf @ONLY)
 
 configure_file(drc_tc_gui.conf.in ${CMAKE_CURRENT_BINARY_DIR}/drc_tc_gui.conf @ONLY)
-
-
 configure_file(drc_tc_gui.service.in ${CMAKE_CURRENT_BINARY_DIR}/drc_tc_gui.service @ONLY)
 
 
