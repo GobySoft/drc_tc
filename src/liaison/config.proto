@@ -41,12 +41,5 @@ message DRCGUIConfig
   
   optional string this_config_location = 200 [default = "/etc/drc_tc/drc_tc.pb.cfg"];
 
-
-  optional int32 link2_tunnel_num = 300 [default = 61];
-  optional string link2_tunnel_address = 301 [default = "172.19.6.1"];
-  optional string link2_remote_address = 302 [default = "172.19.6.1"];
-  optional int32 link2_remote_port = 303 [default = 9010];
-  optional string link2_blackout_file = 304;
-
 }
 

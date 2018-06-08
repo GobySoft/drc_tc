@@ -96,34 +96,8 @@ void drc_tc::DRCLiaisonGUI::create_layout()
     const google::protobuf::Descriptor* desc = cfg_.GetDescriptor();
  
     
-    Wt::WGroupBox* link2_box = new Wt::WGroupBox("Link2 (blackout intervals) settings: ", update_box);    
-
     
-    add_slider_box(desc->FindFieldByNumber(300), 0, 100, link2_box, false); // tunnel_num
-
-    link2_tunnel_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(301)->name(), link2_box); // tunnel_address
-    Wt::WLineEdit* link2_tunnel_address_edit = new Wt::WLineEdit(cfg_.link2_tunnel_address(), link2_tunnel_address_group_);
-    link2_tunnel_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_link2_tunnel_address, this, link2_tunnel_address_edit));
-
-    link2_remote_address_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(302)->name(), link2_box); // remote_address
-    Wt::WLineEdit* link2_remote_address_edit = new Wt::WLineEdit(cfg_.link2_remote_address(), link2_remote_address_group_);
-    link2_remote_address_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_link2_remote_address, this, link2_remote_address_edit));
-
-    add_slider_box(desc->FindFieldByNumber(303), 1024, 65535, link2_box, false); // port
-
-    
-    link2_blackout_file_group_ = new Wt::WGroupBox(desc->FindFieldByNumber(304)->name(), link2_box); // blackout_file
-    Wt::WLineEdit* link2_blackout_file_edit = new Wt::WLineEdit(cfg_.link2_blackout_file(), link2_blackout_file_group_);
-    link2_blackout_file_edit->changed().connect(boost::bind(&drc_tc::DRCLiaisonGUI::do_set_link2_blackout_file, this, link2_blackout_file_edit));
-
-    new Wt::WBreak(link2_box);
-
-    Wt::WPushButton* restart = new Wt::WPushButton("Restart Blackout File", link2_box);
-    restart->clicked().connect(this, &drc_tc::DRCLiaisonGUI::do_change_tunnel);
-
-
-    
-    Wt::WGroupBox* link3_box = new Wt::WGroupBox("Link3 (always on) settings: ", update_box);    
+    Wt::WGroupBox* link3_box = new Wt::WGroupBox("Tunnel (always on) settings: ", update_box);    
     add_slider_box(desc->FindFieldByNumber(1), 0, 5000, link3_box); // latency_ms
     add_slider_box(desc->FindFieldByNumber(2), 0, 100, link3_box); // drop_percentage
 
@@ -274,12 +248,7 @@ void drc_tc::DRCLiaisonGUI::do_apply()
        cfg_.remote_tunnel_address() != last_cfg_.remote_tunnel_address() ||
        cfg_.tunnel_num() != last_cfg_.tunnel_num() ||
        cfg_.remote_address() != last_cfg_.remote_address() ||
-       cfg_.port() != last_cfg_.port() ||
-       cfg_.link2_tunnel_address() != last_cfg_.link2_tunnel_address() ||
-       cfg_.link2_tunnel_num() != last_cfg_.link2_tunnel_num() ||
-       cfg_.link2_remote_address() != last_cfg_.link2_remote_address() ||
-       cfg_.link2_remote_port() != last_cfg_.link2_remote_port() ||
-       cfg_.link2_blackout_file() != last_cfg_.link2_blackout_file())
+       cfg_.port() != last_cfg_.port())
     {
         do_change_tunnel();
     }
@@ -300,11 +269,6 @@ void drc_tc::DRCLiaisonGUI::do_change_tunnel()
     {        
         std::stringstream command;
         command << "service drc_tc restart" << std::endl;        
-        tc_system(command);
-    }
-    {        
-        std::stringstream command;
-        command << "service drc_tc_link2 restart" << std::endl;        
         tc_system(command);
     }
 }
